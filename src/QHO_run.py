@@ -60,9 +60,6 @@ def plot_two_point_function_accel_and_no_accel(a, N,N_measurements):
     error_estimates_noacc = [estimates_noacc[i][1] for i in range(N+1)]
     
     normalized_data_noacc, normalized_error_noacc = value_estimates_noacc/value_estimates_noacc[0], error_estimates_noacc/value_estimates_noacc[0] 
-
-
-
     
     Stat_acc = [Stats(b) for b in vals_acc]
     
@@ -153,6 +150,8 @@ def plot_position_sq_accel_and_no_accel(pos_a,N, N_measurements):
     
     ax.spines[['right', 'top']].set_visible(False)
     
+    plt.savefig('QHOResults/Plots/Position_sq_Accel_no_Accel' + '.svg')
+
     plt.show()
 
 def plot_position_accel_and_no_accel(pos_a, N, N_measurements):
@@ -193,7 +192,9 @@ def plot_position_accel_and_no_accel(pos_a, N, N_measurements):
     plt.ylabel('$\langle x\\rangle$')
     
     ax.spines[['right', 'top']].set_visible(False)
-    
+
+    plt.savefig('QHOResults/Plots/Position_Accel_no_Accel' + '.svg')
+
     plt.show()
 
 
