@@ -32,8 +32,8 @@ def main():
     
     #[calibration(a,N,mass,w,2,True) for a in pos_a]
 
+    [calibration(a,N,mass,w,3,True) for a in pos_a]
     #[calibration(a,N,mass,w,3,False) for a in pos_a]
-    [calibration(a,N,mass,w,3,False) for a in pos_a]
     #[measure_two_point_function_a(a,N,N_measurements,acceleration=False) for a in pos_a]
     
     #[measure_two_point_function_a(a,N,N_measurements,acceleration=True) for a in pos_a]
@@ -42,7 +42,7 @@ def main():
     #measure_sq_a(pos_a,N,N_measurements,True)
     #[obtain_model_2(a,N,N_measurements,True)for a in pos_a]
     #[measure_config_a(a,N,N_measurements,False) for a in pos_a]
-    [measure_iat(a,N,N_measurements,False) for a in pos_a]
+    [measure_iat(a,N,N_measurements,True) for a in pos_a]
     #plot_iat_accel_and_no_accel(pos_a,N,N_measurements)
     #plot_models_2(pos_a,N,N_measurements,acceleration=True)
 def plot_two_point_function_accel_and_no_accel(a, N,N_measurements):
@@ -108,6 +108,7 @@ def plot_iat_accel_and_no_accel(pos_a, N, N_measurements):
 
     plt.xscale('log')
     plt.yscale('log')
+    plt.savefig('QHOResults/Plots/Iat_Accel_no_Accel' + '.svg')
     plt.show()
 
 def plot_position_sq_accel_and_no_accel(pos_a,N, N_measurements):
@@ -295,7 +296,7 @@ def plot_sq_a(pos_a, N, N_measurements,acceleration=False):
     
     ax.spines[['right', 'top']].set_visible(False)
 
-    plt.savefig('QHOResults/Plotss/QHO_sq_diff_a_Accel_'+str(acceleration)+  '.svg')
+    plt.savefig('QHOResults/Plots/QHO_sq_diff_a_Accel_'+str(acceleration)+  '.svg')
     
     plt.show()
 
