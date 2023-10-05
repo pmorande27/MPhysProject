@@ -12,8 +12,14 @@ def analytical(a,N,mu,m):
     return 1/(2*mu*(m+a**2*mu**2/4)**0.5)*(1+R**N)/(1-R**N)
 
 class Lattice(object):
+    """
+    Class used to represent the 1 Dimensional Lattice of the Quantum Harmonic Oscillator
+    """
 
     def __init__(self, N, a, N_thermal, N_measurement, N_sweeps, Delta, N_tau, d_tau, mass, w, acceleration = False) -> None:
+        """
+        Constructor of the Class
+        """
         self.delta_H = 0
         self.m = mass 
 
@@ -52,9 +58,15 @@ class Lattice(object):
         self.tries = 0
         
     def A_k(self,k, M):
+        """
+        Computes the inverse of the Kernel in Fourier Space
+        """
         return self.a/(self.m*(4*np.sin(np.pi*k/self.N)**2+M**2))
     
     def HMC_accel(self):
+        """
+        Hybrid Monte Carlo with Fourier Acceleration
+        """
 
         N_2 = int(self.N/2)
         k = np.arange(0, self.N) # lattice in Fourier space
@@ -98,6 +110,9 @@ class Lattice(object):
         self.tries += 1
 
     def molecular_dynamics_accelerated(self,phi_0,ps_0,A_k):
+        """
+        Molecular Dynamics with Fourier Acceleration
+        """
 
         p = ps_0 -self.d_tau/2 * (self.m/self.a *(2*phi_0-np.roll(phi_0,1)-np.roll(phi_0,-1))+ self.a*self.m*self.w**2 *phi_0 )
         #print(p)
@@ -118,12 +133,18 @@ class Lattice(object):
     
     @staticmethod
     def action(lattice,a, m, w):
+        """
+        Gives the Action of a given lattice.
+        """
         
         S =  sum(1/2 *a *((np.roll(lattice,-1)-lattice)/a)**2 +1/2*a*m*w**2*lattice**2)
        
         return S
     
     def HMC(self):
+        """
+        Hybrid Monte Carlo for the case of no acceleration
+        """
 
         ps = np.array([np.random.normal() for i in range(self.N)])
 
@@ -142,6 +163,9 @@ class Lattice(object):
     
 
     def molecular_dynamics(self,p_0, x_0):
+        """
+        Molecular Dynamics for the case of no acceleration
+        """
         p = p_0 -self.d_tau/2 * (self.m/self.a *(2*x_0-np.roll(x_0,1)-np.roll(x_0,-1))+ self.a*self.m*self.w**2 *x_0 )
         x = x_0 + self.d_tau*p
 
@@ -156,6 +180,9 @@ class Lattice(object):
         
     
     def thermalize(self):
+        """
+        Runs the HMC alogrithm for N_thermal times
+        """
         with alive_bar(self.N_thermal) as bar:
             for i in range(self.N_thermal):
                 if self.acceleration:
@@ -165,6 +192,9 @@ class Lattice(object):
                     self.HMC()
                 bar()
     def Calibration_Runs(self, N_runs, N_thermal):
+        """
+        Runs the HMC for Calibration of the parameters of the algorithms
+        """
         with alive_bar(N_runs+N_thermal) as bar:
             for i in range(N_thermal):
                 if self.acceleration:
@@ -186,6 +216,9 @@ class Lattice(object):
 
     
     def Get_configurations(self):
+        """
+        Runs the HMC N_measurment times and records the lattice in each measurement.
+        """
     
         results = np.empty((self.N_measurement,self.N))
         with alive_bar(self.N_measurement) as bar:
@@ -209,7 +242,9 @@ class Lattice(object):
         return(results)
     
     def generate_measurements(self, observable):
-        
+        """
+        Runs the HMC N_measurment times and records the observable value in each measurement.
+        """
 
         results = [0 for i in range(self.N_measurement)]
         print('Measurements with a = ' + str(self.a) + " N = " +str(self.N)+ " and Accel = " + str(self.acceleration))
@@ -236,6 +271,9 @@ class Lattice(object):
 
     @staticmethod
     def measure_twopoint(lattice):
+        """
+        Returns the two point function of a given lattice
+        """
         N = len(lattice)
 
         positions = [i for i in range(N)]
@@ -248,6 +286,9 @@ class Lattice(object):
     
     @staticmethod    
     def measure_greens(lattice):
+        """
+        Returns the Greens function of a given lattice
+        """
 
         N = len(lattice)
         
@@ -262,13 +303,22 @@ class Lattice(object):
 
     @staticmethod
     def measure_position(lattice):
+        """
+        Returns the average position of a given lattice
+        """
         return np.average(lattice)
     @staticmethod
     def measure_sq_position(lattice):
+        """
+        Returns the average sq position of a given lattice
+        """
         return np.average([x**2 for x in lattice])
     
     @staticmethod
     def save_measurements(N, a, N_thermal, N_meausre, N_sweeps, measurements, observable_name, file_name):
+        """
+        Option to save files
+        """
         file = open(file_name,'a')
         
         file.write("########################"+ '\n')
@@ -290,6 +340,3 @@ class Lattice(object):
         file.close()
 
         np.save(file_name,measurements)
-"""
-a = Lattice(100,0.1,1,1,1,1,1,1,10,1,True)
-a = Lattice(100,0.1,1,1,1,1,10,1,1,1,True)"""
