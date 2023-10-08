@@ -137,7 +137,7 @@ class Lattice(object):
         
         phi =phi_0 +np.real(np.fft.ifft(p_f*A_k))*self.d_tau
 
-        for i in range(0,self.N_tau):
+        for i in range(1,self.N_tau):
 
             p = p -self.d_tau* (self.m/self.a *(2*phi-np.roll(phi,1)-np.roll(phi,-1))+ self.a*self.m*self.w**2 *phi )
             
