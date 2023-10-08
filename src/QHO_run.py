@@ -15,7 +15,7 @@ def main():
    
     
     pos_a =np.logspace(0,-2,15)
-    #pos_a = [0.1,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
+    #pos_a = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
     
     #pos_a = [0.6]
     #pos_a.reverse()
@@ -32,18 +32,19 @@ def main():
     
     #[calibration(a,N,mass,w,2,True) for a in pos_a]
 
-    [calibration(a,N,mass,w,3,True) for a in pos_a]
-    #[calibration(a,N,mass,w,3,False) for a in pos_a]
+    #[calibration(a,N,mass,w,3,True) for a in pos_a]
     #[measure_two_point_function_a(a,N,N_measurements,acceleration=False) for a in pos_a]
     
     #[measure_two_point_function_a(a,N,N_measurements,acceleration=True) for a in pos_a]
 
-    #measure_sq_a(pos_a,N,N_measurements,False) 
+    #measure_sq_a(pos_a,N,N_measurements,True) 
+    #plot_sq_a(pos_a,N,N_measurements,True)
     #measure_sq_a(pos_a,N,N_measurements,True)
     #[obtain_model_2(a,N,N_measurements,True)for a in pos_a]
     #[measure_config_a(a,N,N_measurements,False) for a in pos_a]
-    [measure_iat(a,N,N_measurements,True) for a in pos_a]
+    [measure_iat(a,N,N_measurements,False) for a in pos_a[::-1]]
     #plot_iat_accel_and_no_accel(pos_a,N,N_measurements)
+
     #plot_models_2(pos_a,N,N_measurements,acceleration=True)
 def plot_two_point_function_accel_and_no_accel(a, N,N_measurements):
     file_name_acc = "QHOResults/Two Point Function/Measure Two Point Function "  + "N = "+str(N) + " N_measure = " + str(N_measurements) + " a = " + str(a)+ " Accel = "+str(True) +".npy"
@@ -88,6 +89,8 @@ def plot_iat_accel_and_no_accel(pos_a, N, N_measurements):
     iats_acc_err = np.zeros(len(pos_a))
     iats_noacc = np.zeros(len(pos_a))
     iats_noacc_err = np.zeros(len(pos_a))
+    ax = plt.subplot(111)
+
 
     
     for i in range(len(pos_a)):
@@ -100,12 +103,35 @@ def plot_iat_accel_and_no_accel(pos_a, N, N_measurements):
         value_noacc = np.load(file_name_noacc)
         iats_noacc[i] = value_noacc[0]
         iats_noacc_err[i] = value_noacc[1]
-    plt.errorbar(x=pos_a, y = iats_acc, yerr = iats_acc_err, fmt = '.k', color = 'red',label = "Acceleration")
-    plt.errorbar(x=pos_a, y = iats_noacc, yerr = iats_noacc_err, fmt = '.k',label = "No Acceleration")
+    log_a = np.log(pos_a)
+    log_iat = np.log(iats_noacc)
+    err_log = iats_noacc_err/iats_noacc
+    def linear(x, z, b):
+        return z*x + b
+    popt, pcov = curve_fit(linear, xdata=log_a,ydata=log_iat,sigma=err_log, absolute_sigma=True)
+    fitted_noacc = [a**popt[0]*np.exp(popt[1]) for a in pos_a]
+    ax.errorbar(x=pos_a, y = iats_acc, yerr = iats_acc_err, fmt = '.k', color = 'red',label = "Acceleration")
+    ax.errorbar(x=pos_a, y = iats_noacc, yerr = iats_noacc_err, fmt = '.k',label = "No Acceleration")
+    log_iat_2 = np.log(iats_acc)
+    err_log_2 = iats_acc_err/iats_acc
+    popt2, pcov2 = curve_fit(linear, xdata=log_a,ydata=log_iat_2,sigma=err_log_2, absolute_sigma=True)
+    fitted_acc = [a**popt2[0]*np.exp(popt2[1]) for a in pos_a]
+    ax.plot(pos_a,fitted_noacc,label = 'Fit for no accelration: $z = $' + str(round(popt[0],3))+' $\pm $'+ str(round(np.sqrt(pcov[0][0]),3)))
 
+    ax.plot(pos_a,fitted_acc,label = 'Fit for accelration: $z = $' + str(round(popt2[0],3))+' $\pm $'+ str(round(np.sqrt(pcov2[0][0]),3)))
+
+
+    print(popt[0], np.sqrt(pcov[0][0]))
+    print(popt2[0], np.sqrt(pcov2[0][0]))
     plt.xscale('log')
     plt.yscale('log')
-    plt.savefig('QHOResults/Plots/Iat_Accel_no_Accel' + '.svg')
+    ax.spines[['right', 'top']].set_visible(False)
+    plt.ylabel('$ \\tau_{INT}$')
+    plt.xlabel('a')
+    plt.legend()
+
+    plt.savefig('QHOResults/Plots/Iat_Accel_no_AccelModified_HMC_noaccel_1' + '.svg')
+
     plt.show()
 
 def plot_position_sq_accel_and_no_accel(pos_a,N, N_measurements):
@@ -214,8 +240,8 @@ def measure_iat(a,N, N_measurements, acceleration):
     Delta = 1
 
     lat = Lattice(N = N, a = a, N_thermal = N_thermal, N_measurement = N_measurements, N_sweeps = N_sweeps, Delta = Delta,N_tau=N_tau,d_tau=d_tau,mass=mass,w=w,acceleration=acceleration)
-    values = lat.Get_configurations()
-    iat,error = Stats.autocorrelator_repeats(np.array(values))
+    values = lat.generate_measurements(Lattice.measure_position)
+    iat,error = Stats.autocorrelator(np.array(values))
     file_name = "QHOResults/IAT/Measure IAT "  + "N = "+str(N) + " N_measure = " + str(N_measurements) + " a = " + str(a)+ " Accel = "+str(acceleration) 
     np.save(file_name,np.array([iat,error]))
 
