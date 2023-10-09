@@ -20,32 +20,66 @@ def main():
     #pos_a = [0.6]
     #pos_a.reverse()
     #pos_a =  [0.1]
-    N = 1000
+    N = 100
     mass = 1
     w = 1
-    N_measurements = 10**5
+    N_measurements = 10**6
     #calibration(a,N,mass,w,2,True)
 
     #lat = Lattice(100,0.1,1000,10**5,1,1,N_tau,d_tau,1,1,True)
     #lat.generate_measurements(Lattice.measure_position)
     #print(np.mean(np.exp(-lat.DH)))
     
-    #[calibration(a,N,mass,w,2,True) for a in pos_a]
+    #[calibration(a,N,mass,w,2,False) for a in pos_a]
 
     #[calibration(a,N,mass,w,3,True) for a in pos_a]
     #[measure_two_point_function_a(a,N,N_measurements,acceleration=False) for a in pos_a]
     
     #[measure_two_point_function_a(a,N,N_measurements,acceleration=True) for a in pos_a]
-
-    #measure_sq_a(pos_a,N,N_measurements,True) 
+    measure_DH(0.1,N,10**6,True)
+    plot_DH(0.1,N,10**6,True) 
+    #plot_position_sq_accel_and_no_accel(pos_a,N,N_measurements)
     #plot_sq_a(pos_a,N,N_measurements,True)
     #measure_sq_a(pos_a,N,N_measurements,True)
     #[obtain_model_2(a,N,N_measurements,True)for a in pos_a]
     #[measure_config_a(a,N,N_measurements,False) for a in pos_a]
-    [measure_iat(a,N,N_measurements,False) for a in pos_a[::-1]]
+    #[measure_iat(a,N,N_measurements,False) for a in pos_a[::-1]]
     #plot_iat_accel_and_no_accel(pos_a,N,N_measurements)
 
     #plot_models_2(pos_a,N,N_measurements,acceleration=True)
+    #plot_iat_estimation(0.2,100,False)
+def plot_DH(a, N, N_measurements, acceleration):
+    file_name = "QHOResults/IAT/Measure DH "  + "N = "+str(N) + " N_measure = " + str(N_measurements) + " a = " + str(a)+ " Accel = "+str(acceleration) +".npy"
+    DH = np.load(file_name)
+    average = np.average(DH)
+    plt.plot(DH,'.k')
+    plt.plot([0,len(DH)],[average,average])
+    print(average)
+    plt.show()
+
+def measure_DH(a, N, N_measurements, acceleration):
+    N_tau,d_tau = load_calibration(a,N,1,1,acceleration)
+    lat = Lattice(N,a,int(N_measurements/10),N_measurements,1,1,N_tau,d_tau,1,1,acceleration)
+    values = lat.generate_measurements(observable=Lattice.measure_position)
+    Hs = lat.DH
+    file_name = "QHOResults/IAT/Measure DH "  + "N = "+str(N) + " N_measure = " + str(N_measurements) + " a = " + str(a)+ " Accel = "+str(acceleration) 
+    np.save(file_name,Hs)
+
+def plot_iat_estimation(a, N,acceleration):
+    N_tau, d_tau = load_calibration(a,N,1,1,acceleration)
+    Ns = [int(i) for i in np.logspace(6,3,20)]
+
+    IATs = np.zeros(len(Ns))
+    IATsErr = np.zeros(len(Ns))
+    for i,N_measurement in enumerate(Ns):
+        lat = Lattice(N, a, int(N_measurement/10), N_measurement,1,1,N_tau,d_tau,1,1,acceleration)
+        values = np.array(lat.generate_measurements(Lattice.measure_position))
+        IATs[i], IATsErr[i] = Stats.autocorrelator(values)
+    plt.plot(Ns,IATs)    
+    plt.xscale('log')
+    plt.show()
+
+        
 def plot_two_point_function_accel_and_no_accel(a, N,N_measurements):
     file_name_acc = "QHOResults/Two Point Function/Measure Two Point Function "  + "N = "+str(N) + " N_measure = " + str(N_measurements) + " a = " + str(a)+ " Accel = "+str(True) +".npy"
     file_name_noacc = "QHOResults/Two Point Function/Measure Two Point Function "  + "N = "+str(N) + " N_measure = " + str(N_measurements) + " a = " + str(a)+ " Accel = "+str(False) +".npy"
