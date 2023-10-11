@@ -14,7 +14,7 @@ def main():
     
    
     
-    pos_a =np.logspace(0,-2,15)
+    pos_a =np.logspace(0,-2,20)
     #print(pos_a)
     #pos_a = [0.01930698]
     #pos_a = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
@@ -26,15 +26,12 @@ def main():
     mass = 1
     w = 1
     N_measurements = 10**5
-    #calibration( 0.01930698,N,1,1,2,True)
-
-    #calibration(a,N,mass,w,2,True)
 
     #lat = Lattice(100,0.1,1000,10**5,1,1,N_tau,d_tau,1,1,True)
     #lat.generate_measurements(Lattice.measure_position)
     #print(np.mean(np.exp(-lat.DH)))
     
-    #[calibration(a,N,mass,w,2,False) for a in pos_a]
+    [calibration(a,N,mass,w,2,True) for a in pos_a]
 
     #[calibration(a,N,mass,w,3,True) for a in pos_a]
     #[measure_two_point_function_a(a,N,N_measurements,acceleration=False) for a in pos_a]
@@ -42,7 +39,7 @@ def main():
     #[measure_two_point_function_a(a,N,N_measurements,acceleration=True) for a in pos_a]
     #measure_DH(0.5,N,10**5,False)
     #measure_sq_a(pos_a,N,N_measurements,True)
-    plot_sq_a(pos_a,N,N_measurements,True)
+    #plot_sq_a(pos_a,N,N_measurements,True)
 
     #plot_DH(0.5,N,10**5,False) 
     #measure_DH(0.5,N,10**5,True)
