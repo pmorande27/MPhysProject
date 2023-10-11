@@ -15,15 +15,19 @@ def main():
    
     
     pos_a =np.logspace(0,-2,15)
+    #print(pos_a)
+    #pos_a = [0.01930698]
     #pos_a = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
     
     #pos_a = [0.6]
     #pos_a.reverse()
     #pos_a =  [0.1]
-    N = 100
+    N = 1000
     mass = 1
     w = 1
-    N_measurements = 10**6
+    N_measurements = 10**5
+    #calibration( 0.01930698,N,1,1,2,True)
+
     #calibration(a,N,mass,w,2,True)
 
     #lat = Lattice(100,0.1,1000,10**5,1,1,N_tau,d_tau,1,1,True)
@@ -36,14 +40,19 @@ def main():
     #[measure_two_point_function_a(a,N,N_measurements,acceleration=False) for a in pos_a]
     
     #[measure_two_point_function_a(a,N,N_measurements,acceleration=True) for a in pos_a]
-    measure_DH(0.1,N,10**6,True)
-    plot_DH(0.1,N,10**6,True) 
+    #measure_DH(0.5,N,10**5,False)
+    #measure_sq_a(pos_a,N,N_measurements,True)
+    plot_sq_a(pos_a,N,N_measurements,True)
+
+    #plot_DH(0.5,N,10**5,False) 
+    #measure_DH(0.5,N,10**5,True)
+    #plot_DH(0.5,N,10**5,True)
     #plot_position_sq_accel_and_no_accel(pos_a,N,N_measurements)
     #plot_sq_a(pos_a,N,N_measurements,True)
     #measure_sq_a(pos_a,N,N_measurements,True)
     #[obtain_model_2(a,N,N_measurements,True)for a in pos_a]
     #[measure_config_a(a,N,N_measurements,False) for a in pos_a]
-    #[measure_iat(a,N,N_measurements,False) for a in pos_a[::-1]]
+    #[measure_iat(a,N,N_measurements,True) for a in pos_a]
     #plot_iat_accel_and_no_accel(pos_a,N,N_measurements)
 
     #plot_models_2(pos_a,N,N_measurements,acceleration=True)
@@ -51,10 +60,22 @@ def main():
 def plot_DH(a, N, N_measurements, acceleration):
     file_name = "QHOResults/IAT/Measure DH "  + "N = "+str(N) + " N_measure = " + str(N_measurements) + " a = " + str(a)+ " Accel = "+str(acceleration) +".npy"
     DH = np.load(file_name)
-    average = np.average(DH)
-    plt.plot(DH,'.k')
-    plt.plot([0,len(DH)],[average,average])
+    average = np.average(np.exp(-DH))
+    ax = plt.subplot(111)
+
+    ax.plot(np.exp(-DH),'.k',label = 'Data')
+    ax.plot([0,len(DH)],[average,average],label = 'Average value')
+    plt.xlim(500,1800)
+    plt.legend()
     print(average)
+    print((np.var(np.exp(-DH),ddof=1))/len(DH)**0.5)
+
+    ax.spines[['right', 'top']].set_visible(False)
+    plt.xlabel("Run")
+    plt.ylabel('$ \exp\{-\Delta H\} $')
+    plt.savefig('QHOResults/Plots/ExpDH_accel_' +str(acceleration)+ '.svg')
+
+
     plt.show()
 
 def measure_DH(a, N, N_measurements, acceleration):
@@ -320,7 +341,7 @@ def measure_sq_a(pos_a,N,N_measurements,acceleration= False):
         values = lat.generate_measurements(Lattice.measure_sq_position)
 
         file_name = "QHOResults/Sq Position/Measure Sq Position "  + "N = "+str(N) + " N_measure = " + str(N_measurements) + " a = " + str(a) + " Accel = " +str(acceleration)
-
+        print(Stats(values).estimate())
         np.save(file_name,values)
 
 def plot_sq_a(pos_a, N, N_measurements,acceleration=False):
@@ -334,8 +355,10 @@ def plot_sq_a(pos_a, N, N_measurements,acceleration=False):
         file_name = "QHOResults/Sq Position/Measure Sq Position "  + "N = "+str(N) + " N_measure = " + str(N_measurements) + " a = " + str(pos_a[i]) + " Accel = " +str(acceleration)+".npy"
 
         values = np.load(file_name)
+        
 
         result[i],error[i] = Stats(values).estimate()
+        print(pos_a[i],result[i],error[i])
 
     real = [analytical(a,N,1,1) for a in np.linspace(min(pos_a),1,1000)]
 
@@ -347,6 +370,7 @@ def plot_sq_a(pos_a, N, N_measurements,acceleration=False):
 
     ax.plot([0,1.5],[0.5,0.5],color = "black", label = "Continuum Limit",linestyle="--")
 
+    plt.xscale('log')
     plt.xlim(0,1.1)
     
     plt.legend()
@@ -511,9 +535,11 @@ def plot_pos_a(pos_a, N, N_measurements, acceleration):
     
     ax.plot(np.linspace(0,1.1,100),[0 for i in range(100)],"black",linestyle=(0, (1, 1)),label = "Theory")
     
-    plt.xlim(0,1.1)
     
     plt.legend()
+    plt.xscale('log')
+    plt.xlim(0,1.1)
+
     
     plt.xlabel('$\epsilon$')
     
@@ -727,8 +753,9 @@ def calibration(a, N, mass, w, N_tau_guess = 2, acceleration = False):
         calibration_runs = 10**3
 
         lat = Lattice(N = N, a = a, N_thermal = 0, N_measurement = 0, N_sweeps = 1, Delta = 1,N_tau=N_tau,d_tau=d_tau, mass=mass, w=w,acceleration=acceleration)
-        lat.Calibration_Runs(calibration_runs, 100)
+        lat.Calibration_Runs(calibration_runs, 1000)
         rate = lat.accepted/lat.tries
+        print(rate,N_tau)
         if rate <=0.85 and rate >= 0.55:
             break
         if rate < 0.85:
@@ -736,8 +763,9 @@ def calibration(a, N, mass, w, N_tau_guess = 2, acceleration = False):
         else:
             N_tau -= 1
     print("-----------------")
+    print(rate)
     file_name = "QHOParams/QHO Calibration parameters a = " + str(a) + " N = " + str(N)  + " m = " + str(mass) + " w = "+ str(w) + " Acc = " + str(acceleration)
-
+    print(N_tau)
     np.save(file_name, [N_tau,1/N_tau])
 def load_calibration(a, N, mass, w, acceleration = False):
     file_name = "QHOParams/QHO Calibration parameters a = " + str(a) + " N = " + str(N)  + " m = " + str(mass) + " w = "+ str(w) + " Acc = " + str(acceleration)+'.npy'

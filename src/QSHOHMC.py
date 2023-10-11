@@ -304,10 +304,6 @@ class Lattice(object):
 
                     else:
                         self.HMC()
-
-                if i% 1000 == 0:
-                    
-                    pass
                 
                 self.DH[i]  = self.delta_H 
                 
@@ -367,7 +363,7 @@ class Lattice(object):
         Returns the average sq position of a given lattice
         """
         
-        return np.average([x**2 for x in lattice])
+        return np.average(lattice**2)
     
     @staticmethod
     def save_measurements(N, a, N_thermal, N_meausre, N_sweeps, measurements, observable_name, file_name):
@@ -396,3 +392,4 @@ class Lattice(object):
         file.close()
 
         np.save(file_name,measurements)
+#a = Lattice(100,0.1,0,1000,1,1,1,1,1,1,True)
