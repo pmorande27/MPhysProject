@@ -61,7 +61,7 @@ def lookup(d_rate,N_tau,results):
         if abs(x) == d_rate and y == N_tau:
             return x
 def measure_action(beta,N,SU):
-    file_name = "ChiralResults/Action 2 beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+'.npy'
+    file_name = "ChiralResults/Action/Action 2 beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+'.npy'
     N_tau, epsilon = load_calibration(beta,N,SU)
     model = Chiral(N,beta,10**3,1000,1,epsilon,N_tau,2,1,order=10)
         
@@ -81,9 +81,9 @@ def plot_e_desinty(betas,N, SU):
 
     for i in range(len(betas)):
 
-        file_name = "ChiralResults/Action"   + " beta = " + str(betas[i]) +" N = "+str(N)+ " SU = " + str(SU)+".npy"
+        file_name = "ChiralResults/Action/Action"   + " beta = " + str(betas[i]) +" N = "+str(N)+ " SU = " + str(SU)+".npy"
 
-        file_name_2 = "ChiralResults/Action 2"   + " beta = " + str(betas[i]) +" N = "+str(N)+ " SU = " + str(SU)+".npy"
+        file_name_2 = "ChiralResults/Action/Action 2"   + " beta = " + str(betas[i]) +" N = "+str(N)+ " SU = " + str(SU)+".npy"
 
         values = np.load(file_name)
         values_2  = np.load(file_name_2)
