@@ -20,7 +20,7 @@ def power(U,n,identity):
 
 def exponential(U, order,SU,identity,N):
     N = len(U)
-    """if SU == 2:
+    if SU == 2 and order == 0:
         generators = np.zeros((3,2,2),dtype=complex)
 
         generators[0][0,1] =1
@@ -34,7 +34,7 @@ def exponential(U, order,SU,identity,N):
         
         p_is  = np.einsum('ijkl,slk->ijs',U,generators).real/2
         result = exp_map(p_is)
-        return result"""
+        return result
     result = 0
     for n in range(order):
         #a = np.linalg.matrix_power(1j*U[:,:]/N,n)/np.math.factorial(n)
