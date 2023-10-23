@@ -4,9 +4,10 @@ import Matrix_Routines as Mat
 
 
 class Chiral(object):
-    def __init__(self,N, beta, N_measurment, N_thermal, N_sweeps, epsilon, N_tau, SU=3, a = 1, order = 10) -> None:
+    def __init__(self,N, beta, N_measurment, N_thermal, N_sweeps, epsilon, N_tau, SU=3, a = 1, order = 10, order_N = 15) -> None:
         self.SU = SU
         self.a = a
+        self.order_N = order_N
         
         self.epsilon = epsilon
         self.N_tau = N_tau
@@ -51,44 +52,48 @@ class Chiral(object):
     
 
     @staticmethod
-    def action(U, beta):
+    def action(U, beta,c):
         top_neighbours = np.roll(U,-1,axis = 0)
         right_neighbours = np.roll(U,1,axis = 1)
         tops = Mat.multiply_matrices(Mat.dagger(U),top_neighbours)
         #tops += Mat.dagger(tops)
         right = Mat.multiply_matrices(Mat.dagger(U),right_neighbours)
         #right += Mat.dagger(right)
-        return -beta *np.einsum('ijkk->',right+tops).real
+        return -beta/c*2 *np.einsum('ijkk->',right+tops).real
     
    
     @staticmethod
     def Hamiltonian(p,U,beta, c):
-        return 1/(2*c)*np.einsum('ijkl,ijlk->',p,p).real+ Chiral.action(U,beta)
+        return 1/(2*c)*np.einsum('ijkl,ijlk->',p,p).real+ Chiral.action(U,beta,c)
 
     @staticmethod
     def exponential_matrix(matrix, order):
         return np.sum([np.linalg.matrix_power(matrix,n)/np.math.factorial((n)) for n in range(order)],axis = 0,dtype = matrix.dtype)
     @staticmethod
-    def dot_p(U, beta):
+    def dot_p(U, beta,SU,identity):
         top_neighbours = np.roll(U,-1,axis = 0)
         bottom_neighbours = np.roll(U,1,axis = 0)
         left_nighbours = np.roll(U,-1,axis = 1)
         right_neighbours = np.roll(U,1,axis = 1)
         vertical = Mat.multiply_matrices(top_neighbours+bottom_neighbours,Mat.dagger(U))
         horizontal =  Mat.multiply_matrices(left_nighbours+right_neighbours,Mat.dagger(U))
-        return -1j*beta*(vertical -Mat.dagger(vertical) + horizontal - Mat.dagger(horizontal))
-
+        result = -1j*beta*(vertical -Mat.dagger(vertical) + horizontal - Mat.dagger(horizontal))
+        if SU == 2:
+            return result
+        else:
+            result-= np.einsum('ijkl,ijmm->ijkl',identity/SU,result)
+        return result
     @staticmethod
-    def molecular_dynamics(p_0, U_0, beta, epsilon, N_tau,SU, order, identity):
-        p = p_0 +epsilon/2*Chiral.dot_p(U_0,beta)
-        exponential_matrix = Mat.exponential(epsilon*p,order,SU,identity,10)
+    def molecular_dynamics(p_0, U_0, beta, epsilon, N_tau,SU, order, identity, order_N):
+        p = p_0 +epsilon/2*Chiral.dot_p(U_0,beta,SU,identity)
+        exponential_matrix = Mat.exponential(epsilon*p,order,SU,identity,order_N)
         Unew = np.einsum('ijkl,ijlm->ijkm',exponential_matrix,U_0)
        
         for i in range(N_tau):
-            p += epsilon*Chiral.dot_p(Unew,beta)
-            exponential_matrix = Mat.exponential(epsilon*p, order,SU,identity,10)
+            p += epsilon*Chiral.dot_p(Unew,beta,SU,identity)
+            exponential_matrix = Mat.exponential(epsilon*p, order,SU,identity,order_N)
             Unew = np.einsum('ijkl,ijlm->ijkm',exponential_matrix,Unew)
-        p += +epsilon/2*Chiral.dot_p(Unew,beta)
+        p += +epsilon/2*Chiral.dot_p(Unew,beta,SU,identity)
         return p, Unew
     
     def HMC(self):
@@ -99,7 +104,7 @@ class Chiral(object):
         p = np.einsum('abi,ikl->abkl',p_i,self.generators)
 
         H = Chiral.Hamiltonian(p,self.U,self.beta,self.c)
-        p_new, U_new = Chiral.molecular_dynamics(p.copy(),self.U.copy(),self.beta,self.epsilon,self.N_tau, self.SU, self.order,self.identity)
+        p_new, U_new = Chiral.molecular_dynamics(p.copy(),self.U.copy(),self.beta,self.epsilon,self.N_tau, self.SU, self.order,self.identity,self.order_N)
         H_new = Chiral.Hamiltonian(p_new,U_new, self.beta, self.c)
         Delta_H = H_new - H
         self.delta_H = Delta_H
@@ -145,13 +150,14 @@ class Chiral(object):
                
                 bar()
             #print(np.average(np.exp(-self.DH)))
-            print(self.accepted/self.tries)
+            rate = self.accepted/self.tries
+            print(rate)
             
 
         
         print('------------------------------')
         
-        return results
+        return results, rate
     def Calibration_Runs(self, N_runs, N_thermal):
         """
         Runs the HMC for Calibration of the parameters of the algorithms
