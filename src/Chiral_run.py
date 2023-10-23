@@ -2,23 +2,32 @@ from Chiral import Chiral
 import numpy as np
 from Stats import Stats
 import matplotlib.pyplot as plt
+import Matrix_Routines as Mat
+def strong_2(beta):
+    return 1/4 *((2 *beta)/3 + beta**2/6 + beta**3/27 + (25 *beta**4)/864 )
 def strong_coupling(beta):
-    return 1/2*beta+1/6*beta**3+1/6*beta**6
+    return 1/2*beta+1/6*beta**3-1/6*beta**5
+def strong_coupling_alt(beta):
+    return 1/2*beta+1/6*beta**3+1/6*beta**5
+def weak_2(beta):
+    Q_1 = 0.0958876
+    Q_2 = -0.067
+    return 1 - 7/(72* beta**2) - 2/(3* beta) - (137 + 396 *Q_2 + 684 *Q_1)/(2592 *beta**3)
 def weak_coupling(beta):
     Q_1 = 0.0958876
     Q_2 = -0.067
     return 1- 3/(8*beta)*(1+1/(16*beta)+(1/64+3/16*Q_1+1/8*Q_2)*1/beta**2)
-def calibration(beta, N, SU, N_tau_guess = 2):
+def calibration(beta, N, SU,order, N_tau_guess = 2):
     N_tau = N_tau_guess
     print('Calibration with beta = ' + str(beta) + " N = " +str(N)+ " SU = " + str(SU) )
-    up = 0.9
+    up = 0.95
     low = 0.75
     max_count = 10
     results = [0 for i in range(max_count)]
     for i in range(max_count):
         epsilon = 1/N_tau
         calibration_runs = 10**3
-        lat = Chiral(N, beta, 0,0,1,epsilon, N_tau, SU)
+        lat = Chiral(N, beta, 0,0,1,epsilon, N_tau, SU, order=order)
         lat.Calibration_Runs(calibration_runs, 1000)
         rate = lat.accepted/lat.tries
         d_rate = 0.65-rate
@@ -28,7 +37,7 @@ def calibration(beta, N, SU, N_tau_guess = 2):
 
         new_N = int(np.rint(N_tau*(1+d_rate)))
         if rate <=up and rate >= low:
-            file_name = "ChiralParams/Chiral Calibration parameters beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)
+            file_name = "ChiralParams/Chiral Calibration parameters beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+ " Order = " + str(order)
             np.save(file_name, [N_tau,1/N_tau])
             print("-----------------")
             print(rate, N_tau)
@@ -49,27 +58,106 @@ def calibration(beta, N, SU, N_tau_guess = 2):
     d_rate_2 = lookup(d_rate,N_tau,results)
     rate = (d_rate_2+up)*100
     print(rate,N_tau)
-    file_name = "ChiralParams/Chiral Calibration parameters beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)
+    file_name = "ChiralParams/Chiral Calibration parameters beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+ " Order = " + str(order)
+
     np.save(file_name, [N_tau,1/N_tau])
     return N_tau
-def load_calibration(beta, N, SU):
-    file_name = "ChiralParams/Chiral Calibration parameters beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+'.npy'
+def load_calibration(beta, N, SU, order):
+    file_name = "ChiralParams/Chiral Calibration parameters beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU) + " Order = " + str(order)+'.npy'
     values = np.load(    file_name)
     return int(values[0]),values[1]
 def lookup(d_rate,N_tau,results):
     for (x,y) in results:
         if abs(x) == d_rate and y == N_tau:
             return x
-def measure_action(beta,N,SU):
-    file_name = "ChiralResults/Action/Action 2 beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+'.npy'
+def measure_action(beta,N,SU,order):
+    
+    while True:
+        file_name = "ChiralResults/Action/Action beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+'.npy'
+        N_tau, epsilon = load_calibration(beta,N,SU,order)
+        model = Chiral(N,beta,10**3,1000,1,epsilon,N_tau,SU,1,order=order)
+        results,rate = model.generate_measurements(lambda U: -Chiral.action(U,beta,2)/(2*SU*N**2*beta))
+        if rate>0.75:
+            print(Stats(results).estimate())
+            break
+    np.save(file_name,results)
+def measure_susceptibility(beta,N,SU):
+    file_name = "ChiralResults/Susceptibility/Susceptibility 2 beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+'.npy'
     N_tau, epsilon = load_calibration(beta,N,SU)
     model = Chiral(N,beta,10**3,1000,1,epsilon,N_tau,2,1,order=10)
         
-    results = model.generate_measurements(lambda U: -Chiral.action(U,beta)/(4*N**2*beta))
+    results = model.generate_measurements(lambda U:np.einsum('ijkl,ablk->',U,Mat.dagger(U)).real/(2*N**2))
     np.save(file_name,results)
 
 
-def plot_e_desinty(betas,N, SU):
+def plot_e_desinty(betas,N, SU,order):
+    result = np.zeros(len(betas))
+
+    error = np.zeros(len(betas))
+    result_2 = np.zeros(len(betas))
+
+    error_2 = np.zeros(len(betas))
+
+    
+
+    for i in range(len(betas)):
+        
+        file_name = "ChiralResults/Action/Action"   + " beta = " + str(betas[i]) +" N = "+str(N)+ " SU = " + str(2)+" Order = "+str(0)+".npy"
+        values = np.load(file_name)
+        result[i],error[i] = Stats(values).estimate()
+
+
+        file_name_2 = "ChiralResults/Action/Action"   + " beta = " + str(betas[i]) +" N = "+str(N)+ " SU = " + str(SU)+" Order = "+str(order)+".npy"
+
+
+        values_2  = np.load(file_name_2)
+        result_2[i],error_2[i] = Stats(values_2).estimate()
+
+        
+
+    ax = plt.subplot(111)
+    if SU == 2:
+        ax.errorbar(x=betas,y=result,yerr= error,fmt="xk",label = 'Data With Exact Exponetnial')
+        betas_list_1 = np.linspace(0,1,100)
+        strong_2s = [strong_coupling_alt(beta) for beta in betas_list_1]
+
+        strong = [strong_coupling(beta) for beta in betas_list_1]
+        plt.plot(betas_list_1,strong_2s,'b',label='Strong Coupling Alt')
+
+        plt.plot(betas_list_1,strong,'b',label='Strong Coupling')
+        betas_list_2 = np.linspace(0.5,4.0,1000)
+        weak = [weak_coupling(beta) for beta in betas_list_2]
+        plt.plot(betas_list_2,weak,'r',label= 'Weak Coupling')
+    
+    ax.errorbar(x=betas,y=result_2,yerr= error_2,fmt="xg",label = 'Data with Taylor of Order = ' + str(order)+ " and N_order = 10")
+    if SU == 3:
+        betas = np.linspace(0,2,100)
+        values = [strong_2(beta) for beta in betas]
+        plt.plot(betas,values,'b',label = 'Strong Coupling Expansion')
+        betas = np.linspace(1,4,100)
+        values_w= [weak_2(beta) for beta in betas]
+        plt.plot(betas,values_w,'r',label = 'Weak Coupling Expansion')
+        
+        
+
+
+    
+
+
+
+    plt.xlim(0,4.1)
+    
+    plt.legend()
+    
+    plt.xlabel('$\\beta$')
+    
+    plt.ylabel('$e$')
+    
+    ax.spines[['right', 'top']].set_visible(False)
+    
+    plt.savefig('ChiralResults/Plots/Energy_density_SU_' +str(SU)+"_N_"+str(N)+'.svg')
+    plt.show()
+def plot_sus(betas,N, SU):
     result = np.zeros(len(betas))
 
     error = np.zeros(len(betas))
@@ -81,54 +169,48 @@ def plot_e_desinty(betas,N, SU):
 
     for i in range(len(betas)):
 
-        file_name = "ChiralResults/Action/Action"   + " beta = " + str(betas[i]) +" N = "+str(N)+ " SU = " + str(SU)+".npy"
+        #file_name = "ChiralResults/Action/Action"   + " beta = " + str(betas[i]) +" N = "+str(N)+ " SU = " + str(SU)+".npy"
 
-        file_name_2 = "ChiralResults/Action/Action 2"   + " beta = " + str(betas[i]) +" N = "+str(N)+ " SU = " + str(SU)+".npy"
+        file_name_2 = "ChiralResults/Susceptibility/Susceptibility 2"   + " beta = " + str(betas[i]) +" N = "+str(N)+ " SU = " + str(SU)+".npy"
 
-        values = np.load(file_name)
+        #values = np.load(file_name)
         values_2  = np.load(file_name_2)
-        result[i],error[i] = Stats(values).estimate()
+        #result[i],error[i] = Stats(values).estimate()
         result_2[i],error_2[i] = Stats(values_2).estimate()
 
         
 
     ax = plt.subplot(111)
     
-    ax.errorbar(x=betas,y=result,yerr= error,fmt=".k",label = 'Data')
-    ax.errorbar(x=betas,y=result_2,yerr= error_2,fmt=".k",label = 'Data with Taylor',color = 'g')
+    #ax.errorbar(x=betas,y=result,yerr= error,fmt="xk",label = 'Data')
+    ax.errorbar(x=betas,y=result_2,yerr= error_2,fmt="xg",label = 'Data with Taylor')
 
-    betas_list_1 = np.linspace(0,1,100)
-    strong = [strong_coupling(beta) for beta in betas_list_1]
-    plt.plot(betas_list_1,strong,'b')
-    betas_list_2 = np.linspace(0.5,3.0,100)
-    weak = [weak_coupling(beta) for beta in betas_list_2]
-    plt.plot(betas_list_2,weak,'r')
+   
 
 
-
-
-    plt.xlim(0,3.1)
+    plt.xlim(0,2.6)
     
     plt.legend()
     
     plt.xlabel('$\\beta$')
     
-    plt.ylabel('$e$')
+    plt.ylabel('$X$')
     
     ax.spines[['right', 'top']].set_visible(False)
     
-
+    plt.savefig('ChiralResults/Plots/Susceptibility.svg')
     plt.show()
 def main():
     N = 16
-    SU = 2
-    betas1 = [2.9,3.0]
-    betas = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3.0]
-    N_tau = 18
+    SU = 3
+    betas1 = [1.7]
+    betas = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3.0,3.1,3.2,3.3,3.4,3.5,3.6,3.7,3.8,3.9,4.0]
+    order = 10
     for beta in betas1:
-        #N_tau = calibration(beta,N,SU,N_tau)
-        #measure_action(beta,N,SU)
+        #N_tau = calibration(beta,N,SU,order,N_tau)
+        #measure_action(beta,N,SU,order)
         pass
-    plot_e_desinty(betas,N,SU)
+    plot_e_desinty(betas,N,SU,order)
+
 
 main()
