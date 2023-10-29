@@ -1,11 +1,11 @@
 import numpy as np
 from alive_progress import alive_bar
 import Matrix_Routines as Mat
-
+import Exceptions
 
 class Chiral(object):
     
-    def __init__(self, N, beta, N_measurment, N_thermal, N_sweeps, epsilon, N_tau, SU = 3, a = 1, order = 10, order_N = 15) -> None:
+    def __init__(self, N, beta, N_measurment, N_thermal, N_sweeps, epsilon, N_tau, SU = 3, a = 1, order = 10, order_N = 10) -> None:
         
         self.SU = SU
         
@@ -19,12 +19,8 @@ class Chiral(object):
         self.N_tau = N_tau
         
         self.N_sweeps = N_sweeps
-
-        self.randoms = np.load('Test 2.npy')
         
-        self.ps = np.load('Test.npy')
-        
-        if SU == 3 or SU == 2:
+        if SU == 3 or SU == 2 or SU==4:
         
             self.c = 2
         
@@ -177,13 +173,15 @@ class Chiral(object):
             for i in range(self.N_thermal):
                 self.HMC()
                 bar()
+                
 
     
     def generate_measurements(self, observable):
         """
         Runs the HMC N_measurment times and records the observable value in each measurement.
         """
-
+        if np.all(self.U == self.identity):
+            raise Exceptions.ThermalizationException("The Field is still equal to the Identity when initialisating the Measurements, thermalisation has not occurred, possible fixes include running the program again, calibrating or increasing the number of thermalisation runs")
         results = [0 for i in range(self.N_measurement)]
         
         print('Measurements with beta = ' + str(self.beta) + " N = " +str(self.N))
@@ -202,7 +200,10 @@ class Chiral(object):
                 results[i] = observable(self.U)
                
                 bar()
-            
+                if i == 999 and self.accepted/self.tries <= 0.75:
+                    raise Exceptions.CalibrationException('The Acceptance rate of the run is too low to be acceptable, consider recalibrating or running again')
+                """if (i%1000==0):
+                    print(np.average(Mat.determinant(self.U)))"""
             rate = self.accepted/self.tries
             
             print(rate)
@@ -224,6 +225,7 @@ class Chiral(object):
                 self.HMC()
            
                 bar()
+                
            
             self.accepted = 0
            
@@ -236,6 +238,7 @@ class Chiral(object):
                 DH[i] = self.delta_H
                 
                 bar()
+                
             
             print((self.accepted/self.tries)*100)
                     

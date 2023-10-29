@@ -18,8 +18,7 @@ def power(U,n,identity):
             result = np.einsum('ijkl,ijlm->ijkm',result,U)
         return result
 
-def exponential(U, order,SU,identity,N):
-    N = len(U)
+def exponential(U, order,SU,identity,order_N):
     if SU == 2 and order == 0:
         generators = np.zeros((3,2,2),dtype=complex)
 
@@ -38,11 +37,11 @@ def exponential(U, order,SU,identity,N):
     result = 0
     for n in range(order):
         #a = np.linalg.matrix_power(1j*U[:,:]/N,n)/np.math.factorial(n)
-        result+=  np.linalg.matrix_power(1j*U[:,:]/N,n)/np.math.factorial(n)
+        result+=  np.linalg.matrix_power(1j*U[:,:]/order_N,n)/np.math.factorial(n)
         #result+=  power(1j*U[:,:]/N,n,identity)/np.math.factorial(n)
 
     
-    return np.linalg.matrix_power(result[:,:],N)
+    return np.linalg.matrix_power(result[:,:],order_N)
 #   return power(result,N,identity)
 
 def create_generators(SU):
@@ -66,6 +65,40 @@ def create_generators(SU):
         generators[7][0,0] = 1/np.sqrt(3)
         generators[7][1,1] = 1/np.sqrt(3)
         generators[7][2,2] = -2/np.sqrt(3)
+    if SU == 4:
+        generators[0][0,1] = 0
+        generators[0][1,0] = 1
+        generators[1][0,1] = -1j
+        generators[1][1,0] = 1j
+        generators[2][0,0] =1
+        generators[2][1,1] = -1
+        generators[3][0,2] = 1
+        generators[3][2,0] = 1
+        generators[4][0,2] = -1j
+        generators[4][2,0] = 1j
+        generators[5][1,2] = 1
+        generators[5][2,1] = 1
+        generators[6][1,2] = -1j
+        generators[6][2,1]= 1j
+        generators[7][0,0] = 1/np.sqrt(3)
+        generators[7][1,1] = 1/np.sqrt(3)
+        generators[7][2,2] = -2/np.sqrt(3)
+        generators[8][0,3] = 1
+        generators[8][3,0] = 1
+        generators[9][0,3] = -1j
+        generators[9][3,0] = 1j
+        generators[10][1,3] = 1
+        generators[10][3,1] = 1
+        generators[11][1,3] = -1j
+        generators[11][3,1] = 1j
+        generators[12][2,3] = 1
+        generators[12][3,2] = 1
+        generators[13][2,3] = -1j
+        generators[13][3,2] = 1j
+        generators[14][0,0] = 1/np.sqrt(6)
+        generators[14][1,1] = 1/np.sqrt(6)
+        generators[14][1,1] = 1/np.sqrt(6)
+        generators[14][1,1] = -3/np.sqrt(6)
     if SU == 2:
         generators[0][0,1] =1
         generators[0][1,0] = 1
@@ -94,5 +127,8 @@ def exp_map(alpha):
 
     
     return mats
+
+def determinant(U):
+    return np.linalg.det(U[:,:])
    
 
