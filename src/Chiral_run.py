@@ -253,8 +253,8 @@ def plot_generic_data_beta(betas,N,SU, order, N_order, N_measure, N_thermal, obs
 def main():
 
     N = 16
-    SU =3
-    betas1 = [0.1,0.2,0.3]
+    SU =2
+    betas1 = [0.1,0.2,0.3,0.4, 0.5, 0.6, 0.7,0.8,0.9,1.0]
     betas = [0.1,0.2,0.3,0.4, 0.5, 0.6, 0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3.0,3.1,3.2,3.3,3.4,3.5,3.6,3.7,3.8,3.9,4.0]
     order = 10
     N_order = 10
@@ -265,7 +265,7 @@ def main():
         #measure(beta,N,SU,order,N_order,N_measure,N_thermal,lambda U: -Chiral.action(U,beta,2)/(2*SU*N**2*beta),"Action")
         pass
     #plot_e_desinty(betas,N,SU,order,N_order,N_measure,N_thermal)
-    plot_generic_data_beta(betas, N,SU,order,N_order,N_measure,N_thermal,'Action','e')
+    plot_generic_data_beta(betas1, N,SU,order,N_order,N_measure,N_thermal,'Action','e')
 
 
 main()
