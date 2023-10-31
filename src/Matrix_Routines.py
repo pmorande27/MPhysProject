@@ -66,7 +66,7 @@ def create_generators(SU):
         generators[7][1,1] = 1/np.sqrt(3)
         generators[7][2,2] = -2/np.sqrt(3)
     if SU == 4:
-        generators[0][0,1] = 0
+        generators[0][0,1] = 1
         generators[0][1,0] = 1
         generators[1][0,1] = -1j
         generators[1][1,0] = 1j
@@ -97,8 +97,8 @@ def create_generators(SU):
         generators[13][3,2] = 1j
         generators[14][0,0] = 1/np.sqrt(6)
         generators[14][1,1] = 1/np.sqrt(6)
-        generators[14][1,1] = 1/np.sqrt(6)
-        generators[14][1,1] = -3/np.sqrt(6)
+        generators[14][2,2] = 1/np.sqrt(6)
+        generators[14][3,3] = -3/np.sqrt(6)
     if SU == 2:
         generators[0][0,1] =1
         generators[0][1,0] = 1
