@@ -1,8 +1,11 @@
 import numpy as np
-import cupy as cp
 import cProfile
 import time
 import Chiral
+import Matrix_Routines as Mat
 def main():
-    a =Chiral.Chiral(16,0.1,10,100,1,1,2,2,1,5,5)
-cProfile.run('main()')
+  U = np.random.random((10,10,3,3))
+  A = Mat.reunitarisation(U,3)
+  print(Mat.multiply_matrices(U,Mat.dagger(A)))
+  print(np.linalg.det(Mat.reunitarisation(U,3)))
+main()

@@ -132,3 +132,12 @@ def determinant(U):
     return np.linalg.det(U[:,:])
    
 
+def reunitarisation(U, SU):
+    if SU == 3:
+        b = np.einsum('ijk,ij->ijk',U[:,:,0],1/np.sqrt(np.einsum('ijk,ijk->ij',U[:,:,0],U[:,:,0])))
+        U[:,:,0] = b
+        U[:,:,1] = U[:,:,1] - np.einsum('ijk,ij->ijk',U[:,:,0],np.einsum('ijk,ijk->ij',np.conjugate(U[:,:,0]),U[:,:,1]))
+        U[:,:,1] = np.einsum('ijk,ij->ijk',U[:,:,1],1/np.sqrt(np.einsum('ijk,ijk->ij',U[:,:,1],U[:,:,1])))
+        U[:,:,2] =np.array( [[ np.cross(np.conjugate(U[i,j,0]),U[i,j,1])for j in range(len(U))]for i in range(len(U))])
+
+    return U
