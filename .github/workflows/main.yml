@@ -23,7 +23,9 @@ jobs:
         pip install alive-progress
     - name: Run Tests
       run: |
+        cd src
         python -m unittest discover
+        cd ..
     - name: getCoverage
       run: |
         coverage run -m --source=src --omit=./src/main.py unittest discover
