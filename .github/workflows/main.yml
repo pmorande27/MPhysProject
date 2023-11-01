@@ -1,0 +1,37 @@
+# This workflow will upload a Python Package using Twine when a release is created
+# For more information see: https://help.github.com/en/actions/language-and-framework-guides/using-python-with-github-actions#publishing-to-package-registries
+
+name: build
+on: [pull_request,push]
+jobs:
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install setuptools wheel twine
+        pip install matplotlib
+        pip install coverage
+        pip install numpy
+        pip install scipy
+        pip install alive-progress
+    - name: Run Tests
+      run: |
+        cd src
+        python -m unittest discover
+        cd ..
+    - name: getCoverage
+      run: |
+        coverage run -m --source=src --omit=./src/main.py unittest discover
+    - name: "Upload coverage to Codecov"
+      uses: codecov/codecov-action@v1
+      with:
+        fail_ci_if_error: true
+        token: "6aa7d993-de01-42c7-a2aa-4cea9083185b"
+      
