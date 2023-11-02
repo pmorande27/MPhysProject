@@ -5,7 +5,7 @@ import Exceptions
 
 class Chiral(object):
     
-    def __init__(self, N, beta, N_measurment, N_thermal, N_sweeps, epsilon, N_tau, SU = 3, a = 1, order = 10, order_N = 10) -> None:
+    def __init__(self, N, beta, N_measurment, N_thermal, N_sweeps, epsilon, N_tau, SU = 3, a = 1, order = 10, order_N = 10, renorm_freq = 1000) -> None:
         
         self.SU = SU
         
@@ -13,7 +13,8 @@ class Chiral(object):
         
         self.order_N = order_N
         
-        
+        self.renorm_freq = renorm_freq
+
         self.epsilon = epsilon
         
         self.N_tau = N_tau
@@ -123,7 +124,7 @@ class Chiral(object):
         
         p = p_0 + epsilon/2 * Chiral.dot_p(U_0,beta, SU, identity)
         
-        exponential_matrix = Mat.exponential(epsilon * p, order, SU, identity, order_N)
+        exponential_matrix = Mat.exponential(epsilon * p, order, SU, order_N)
         
         Unew = np.einsum('ijkl,ijlm->ijkm', exponential_matrix,U_0)
        
@@ -131,7 +132,7 @@ class Chiral(object):
             
             p += epsilon * Chiral.dot_p(Unew, beta, SU, identity)
             
-            exponential_matrix = Mat.exponential(epsilon * p, order, SU, identity, order_N)
+            exponential_matrix = Mat.exponential(epsilon * p, order, SU, order_N)
             
             
             Unew = np.einsum('ijkl,ijlm->ijkm', exponential_matrix, Unew)
@@ -202,8 +203,9 @@ class Chiral(object):
                 bar()
                 if i == 999 and self.accepted/self.tries <= 0.75:
                     raise Exceptions.CalibrationException('The Acceptance rate of the run is too low to be acceptable, consider recalibrating or running again')
-                """if (i%1000==0):
-                    print(np.average(Mat.determinant(self.U)))"""
+                if (i%self.renorm_freq==0 and self.SU == 3):
+                    self.U = Mat.reunitarisation(self.U.copy(), self.SU)
+                    print(np.average(Mat.determinant(self.U)))
             rate = self.accepted/self.tries
             
             print(rate)
