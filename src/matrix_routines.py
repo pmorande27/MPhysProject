@@ -257,5 +257,48 @@ def reunitarisation(lattice, su_parameter):
                 lattice[i, j, 1] = lattice[i, j, 1]/np.linalg.norm(lattice[i, j, 1])
 
                 lattice[i, j, 2] = np.conjugate(np.cross((lattice[i, j, 0]), lattice[i, j, 1]))
+    if su_parameter == 4:
+        n_length = len(lattice)
+
+        for i in range(n_length):
+
+            for j in range(n_length):
+
+                lattice[i, j, 0] = lattice[i, j, 0]/np.linalg.norm(lattice[i, j, 0])
+
+                lattice[i, j, 1] = lattice[i, j, 1] - \
+                        np.dot(np.conjugate(lattice[i, j, 0]), lattice[i, j, 1])\
+                        * lattice[i, j, 0]
+
+                lattice[i, j, 1] = lattice[i, j, 1]/np.linalg.norm(lattice[i, j, 1])
+
+                lattice[i, j, 2] = lattice[i, j, 2] - \
+                        np.dot(np.conjugate(lattice[i, j, 0]), lattice[i, j, 2])\
+                        * lattice[i, j, 0] -\
+                        np.dot(np.conjugate(lattice[i, j, 1]), lattice[i, j, 2])\
+                        * lattice[i, j, 1]
+
+                lattice[i, j, 2] = lattice[i, j, 2]/np.linalg.norm(lattice[i, j, 2])
+
+                lattice[i, j, 3] = np.conjugate(cross_product_in_4_d((lattice[i, j, 0]), lattice[i, j, 1], lattice[i,j,2]))
+
 
     return lattice
+
+def cross_product_in_4_d(a, b, c):
+    U = np.zeros((4,4),np.clongdouble)
+    U[0,1] = a[3]*b[2] -a[2]*b[3]
+    U[1,0] = -U[0,1]
+    U[0,3] = a[2]*b[1] - a[1]*b[2]
+    U[3,0] = -U[0,3]
+    U[1, 2] = a[3] *b[0] - a[0] *b[3] 
+    U[2, 1] = -U[1, 2]
+    U[1,3] = a[0]*b[2] - a[2]*b[0]
+    U[3,1] = -U[1,3]
+    U[2,3] = a[1]*b[0]-a[0]*b[1]
+    U[3,2] = -U[2,3]
+    U[0,2] = a[1]*b[3] - a[3]*b[1]
+    U[2,0] = -U[0,2]
+    S = U.dot(c)
+    return S
+
