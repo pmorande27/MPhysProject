@@ -102,9 +102,6 @@ def plot_sus(betas,N, SU):
     #ax.errorbar(x=betas,y=result,yerr= error,fmt="xk",label = 'Data')
     ax.errorbar(x=betas,y=result_2,yerr= error_2,fmt="xg",label = 'Data with Taylor')
 
-   
-
-
     plt.xlim(0,2.6)
     
     plt.legend()
