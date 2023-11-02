@@ -113,6 +113,7 @@ def plot_sus(betas,N, SU):
     ax.spines[['right', 'top']].set_visible(False)
     
     plt.savefig('ChiralResults/Plots/Susceptibility.svg')
+    
     plt.show()
 def plot_generic_data_beta(betas,N,SU, order, N_order, N_measure, N_thermal, observable_name, symbol):
     result = [0 for i in range(len(betas))]
