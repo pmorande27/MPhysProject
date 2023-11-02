@@ -4,12 +4,18 @@ from Stats import Stats
 import matplotlib.pyplot as plt
 import Matrix_Routines as Mat
 import Exceptions
+def strong_3(beta):
+    return 1/4 *(beta/2 + (7 *beta**3)/192 + (63 *beta**5)/20480)
 def strong_2(beta):
     return 1/4 *((2 *beta)/3 + beta**2/6 + beta**3/27 + (25 *beta**4)/864 )
 def strong_coupling(beta):
     return 1/2*beta+1/6*beta**3-1/6*beta**5
 def strong_coupling_alt(beta):
     return 1/2*beta+1/6*beta**3+1/6*beta**5
+def weak_3(beta):
+    Q_1 = 0.0958876
+    Q_2 = -0.067
+    return 1 - 105/(512* beta**2) - 15/(16 *beta) - (705 + 3060* Q_1 + 36480 *Q_2)/(4096 *beta**3)
 def weak_2(beta):
     Q_1 = 0.0958876
     Q_2 = -0.067
@@ -169,15 +175,20 @@ def plot_e_desinty(betas,N, SU,order, N_order, N_measure, N_thermal):
         betas = np.linspace(1,4,100)
         values_w= [weak_2(beta) for beta in betas]
         plt.plot(betas,values_w,'r',label = 'Weak Coupling Expansion')
-        
-        
+    if SU== 4:
+        betas = np.linspace(1,6,100)
+        values_w= [weak_3(beta) for beta in betas]
+        plt.plot(betas,values_w,'r',label = 'Weak Coupling Expansion')
 
+        betas = np.linspace(0,3,100)
+        strong= [strong_3(beta) for beta in betas]
+        plt.plot(betas,strong,'b',label = 'Strong Coupling Expansion')
 
     
 
 
 
-    plt.xlim(0,4.1)
+    plt.xlim(0,6)
     
     plt.legend()
     
@@ -253,9 +264,9 @@ def plot_generic_data_beta(betas,N,SU, order, N_order, N_measure, N_thermal, obs
 def main():
 
     N = 16
-    SU =2
-    betas1 = [0.1,0.2,0.3,0.4, 0.5, 0.6, 0.7,0.8,0.9,1.0]
-    betas = [0.1,0.2,0.3,0.4, 0.5, 0.6, 0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3.0,3.1,3.2,3.3,3.4,3.5,3.6,3.7,3.8,3.9,4.0]
+    SU =4
+    betas1 = [0.1,0.2,0.3,0.4, 0.5, 0.6, 0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3.0,3.1,3.2,3.3,3.4,3.5,3.6,3.7,3.8,3.9,4.0,5.6,5.5,5.4,5.3,4.1,4.2,4.3,4.4,4.5,4.6,4.7,5.2,4.8,5.1,5.0]
+    betas = [4.1,5.6,4.2][::-1]
     order = 10
     N_order = 10
     N_tau = 4
@@ -264,8 +275,9 @@ def main():
     for beta in betas:
         #measure(beta,N,SU,order,N_order,N_measure,N_thermal,lambda U: -Chiral.action(U,beta,2)/(2*SU*N**2*beta),"Action")
         pass
-    #plot_e_desinty(betas,N,SU,order,N_order,N_measure,N_thermal)
-    plot_generic_data_beta(betas1, N,SU,order,N_order,N_measure,N_thermal,'Action','e')
+    plot_e_desinty(betas1,N,SU,order,N_order,N_measure,N_thermal)
+    #plot_generic_data_beta(betas1, N,SU,order,N_order,N_measure,N_thermal,'Action','e')
+
 
 
 main()
