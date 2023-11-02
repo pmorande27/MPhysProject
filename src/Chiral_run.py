@@ -2,7 +2,7 @@ from Chiral import Chiral
 import numpy as np
 from Stats import Stats
 import matplotlib.pyplot as plt
-import Matrix_Routines as Mat
+import matrix_routines as Mat
 import Exceptions
 
 def calibration(beta, N, SU, order, N_order, N_tau_guess = 2):

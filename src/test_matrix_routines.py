@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-import Matrix_Routines as Mat
+import matrix_routines as Mat
 import scipy as sci
 class TestSolarSystem(unittest.TestCase):
     def setUp(self) -> None:
@@ -18,9 +18,6 @@ class TestSolarSystem(unittest.TestCase):
         self.assertTrue(np.all(self.A ==Mat.multiply_matrices(self.A,self.Identity) ))
         self.assertTrue(np.all(Mat.multiply_matrices(self.A,self.Identity) ==Mat.multiply_matrices(self.A,self.Identity) ))
     
-    def test_matrix_power(self):
-        self.assertTrue(np.all(Mat.multiply_matrices(self.A,self.A)==Mat.power(self.A,2,self.Identity)))
-        self.assertTrue(np.all(self.Identity==Mat.power(self.A,0,self.Identity)))
     def test_determinant(self):
         ones = np.ones((self.N,self.N))
         self.assertTrue(np.all(ones==Mat.determinant(self.Identity)))
@@ -32,9 +29,9 @@ class TestSolarSystem(unittest.TestCase):
                 B[i,j] = np.conjugate(np.transpose(self.C[i,j]))
         self.assertTrue(np.all(B==Mat.dagger(self.C)))
     def test_exponential(self):
-        D = Mat.exponential(self.C,1,3,self.Identity,1)
+        D = Mat.exponential(self.C,1,3,1)
         self.assertTrue(np.all(D==self.Identity))
-        M = Mat.exponential(self.C,2,3,self.Identity,1)
+        M = Mat.exponential(self.C,2,3,1)
         self.assertTrue(np.all(M==(self.Identity+1j*self.C)))
     
     def test_reunitaristation(self):
@@ -55,7 +52,8 @@ class TestSolarSystem(unittest.TestCase):
         generators[2][1,1] =-1
         a = np.random.random((16,16,3))
         F =np.einsum('ijk,klm->ijlm',a,generators)
-        D = Mat.exponential(F,0,2,self.Identity,0)
+        D = Mat.exponential(F,0,2,0)
+
         E = np.zeros((self.N,self.N,2,2),complex)
         for i in range(self.N):
             for J in range(self.N):

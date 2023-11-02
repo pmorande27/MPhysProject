@@ -1,6 +1,6 @@
 import numpy as np
 from alive_progress import alive_bar
-import Matrix_Routines as Mat
+import matrix_routines as Mat
 import Exceptions
 
 class Chiral(object):
