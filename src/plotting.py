@@ -84,15 +84,15 @@ def plot_e_desinty(betas, model_params):
 
     if model_params["su_parameter"] == 4:
 
-        values_w = [weak_3(beta) for beta in np.linspace(1, 8, 100)]
+        values_w = [weak_3(beta) for beta in np.linspace(1, max(betas), 1000)]
 
-        plt.plot(np.linspace(1, 8, 100), values_w, 'r', label='Weak Coupling Expansion')
+        plt.plot(np.linspace(1, max(betas), 1000), values_w, 'r', label='Weak Coupling Expansion')
 
         strong = [strong_3(beta) for beta in np.linspace(0, 3, 100)]
 
         plt.plot(np.linspace(0, 3, 100), strong, 'b', label='Strong Coupling Expansion')
 
-    plt.xlim(0, 7.1)
+    plt.xlim(0, max(betas)+0.1)
 
     plt.legend()
 
