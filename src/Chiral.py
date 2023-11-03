@@ -203,7 +203,7 @@ class Chiral(object):
                 bar()
                 if i == 999 and self.accepted/self.tries <= 0.75:
                     raise Exceptions.CalibrationException('The Acceptance rate of the run is too low to be acceptable, consider recalibrating or running again')
-                if (i%self.renorm_freq==0 and self.SU == 3):
+                if (i%self.renorm_freq==0 and (self.SU == 3 or self.SU==4)):
                     self.U = Mat.reunitarisation(self.U.copy(), self.SU)
                     print(np.average(Mat.determinant(self.U)))
             rate = self.accepted/self.tries
