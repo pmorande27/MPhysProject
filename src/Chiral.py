@@ -273,7 +273,7 @@ class Chiral(object):
             for t0 in range(N):
                 result[t] += np.einsum('jkl,mlk->',U[t],dagU[(t+t0)%N]).real
         result = result/N**2
-        return ww_cor
+        return result
 
         
     
