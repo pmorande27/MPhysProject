@@ -191,6 +191,5 @@ class Stats(object):
     
         f = np.fft.fft(x)
         g = np.fft.fft(y)
-        cf = np.fft.ifft(f * np.conjugate(g)).real
-
+        cf = np.fft.ifft(f * np.conjugate(g))
         return cf

@@ -263,17 +263,18 @@ class Chiral(object):
         us = np.sum(U,axis = 1)
         us2 = np.sum(dagU,axis = 1)
         ww_cor = np.zeros(N)
-        """for l in range(SU):
+        for l in range(SU):
             for k in range(SU):
-                cf = Stats.correlator(us[:,l,k], us2[:,k,l])
+                cf = Stats.correlator(us[:,l,k], np.conjugate(us2[:,k,l]))
                 ww_cor += cf.real
-        ww_cor = ww_cor/N**2"""
-        result = np.zeros(N)
+        ww_cor = ww_cor/N**2
+        """result = np.zeros(N)
         for t in range(N):
             for t0 in range(N):
-                result[t] += np.einsum('jkl,mlk->',U[t],dagU[(t+t0)%N]).real
-        result = result/N**2
-        return result
+                result[t] += np.einsum('jkl,mlk->',U[t0],dagU[(t+t0)%N]).real
+        result = result/N**2"""
+        return ww_cor
+
 
         
     
