@@ -2,6 +2,7 @@ import numpy as np
 from alive_progress import alive_bar
 import matrix_routines as Mat
 import Exceptions
+from Stats import Stats
 
 class Chiral(object):
     
@@ -254,5 +255,21 @@ class Chiral(object):
     @staticmethod
     def Measure_G2(U,SU):
         return 1/SU *np.einsum('ijkl,mnlk->ijmn',U,Mat.dagger(U)).real
+    
+    @staticmethod
+    def Measure_ww_corr(U,SU):
+        N = len(U)
+        dagU = Mat.dagger(U)
+        us = np.sum(U,axis = 1)
+        us2 = np.sum(dagU,axis = 1)
+        ww_cor = np.zeros(N)
+        for l in range(SU):
+            for k in range(SU):
+                cf, _ = Stats.correlator(us[:,l,k], us2[:,k,l])
+                ww_cor += cf.real
+        ww_cor = ww_cor/N**2
+        return ww_cor
+
+        
     
         

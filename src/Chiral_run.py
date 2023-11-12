@@ -98,6 +98,25 @@ def measure_func_2D(beta, N, SU, order, N_order, N_measure,N_thermal, observable
     vals = results.swapaxes(0,1).swapaxes(1,2)
 
     np.save(file_name,vals)
+def measure_func_1D(beta, N, SU, order, N_order, N_measure,N_thermal, observable, observable_name):
+    count = 0
+    while True:
+        try:
+            if count == 10:    
+                count = 0
+                print('Recalibration')
+                calibration(beta,N,SU,order,N_order,N_tau)
+            file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+            N_tau, epsilon = load_calibration(beta,N,SU,order, N_order)
+            model = Chiral(N,beta,N_measure,N_thermal,1,epsilon,N_tau,SU,1,order=order, order_N=N_order)
+            results,rate = model.generate_measurements(observable)
+        except (Exceptions.ChiralExceptions):
+            count+= 1
+            continue
+        break
+    results = np.array(results)
+    vals = results.swapaxes(0,1)
+    np.save(file_name,vals)
 def measure_func_4D(beta, N, SU, order, N_order, N_measure,N_thermal, observable, observable_name):
     count = 0
     while True:

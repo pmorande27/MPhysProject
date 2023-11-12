@@ -6,29 +6,50 @@ import matrix_routines as Mat
 import plotting
 import Chiral_run
 import Stats
+import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
 
 def main():
 
-    N = 48
-    SU = 3
-    betas1 = [1.62]
+    N = 64
+    SU = 2
+    betas1 = [0.8667]
     betas = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3.0,3.1,3.2,3.3,3.4,3.5,3.6,3.7,3.8,3.9,4.0,4.1,4.2,4.3,4.4,4.5,4.6,4.7,4.8,4.9,5.0,5.1,5.2,5.3,5.4,5.5,5.6,5.7,5.8,5.9,6.0,6.1,6.2,6.3,6.4,6.5,6.6,6.7,6.8,6.9,7.0,7.1,7.2,7.3,7.4,7.5,7.6,7.7,7.8,7.9,8.0,8.1,8.2,8.3,8.4,8.5,8.5,8.6,8.7,8.8,8.9,9.0,9.1,9.2,9.3,9.4,9.5,9.6,9.7,9.8,9.9,10.0,10.1,10.2,10.3,10.4,10.5,10.6,10.7,10.8,10.9,11.0]
-    order = 10
+    order = 0
     betas2 = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3.0,3.1,3.2,3.3,3.4,3.5,3.6,3.7,3.8,3.9,4.0]
-    N_order = 10
-    N_tau = 20
+    N_order = 0
+    N_tau = 10
     N_thermal = 10**3
     N_measure = 1000
     for beta in betas1:
-        N_tau = Chiral_run.calibration(beta,N,SU,order,N_order,N_tau)
-        Chiral_run.measure_func_4D(beta,N,SU,order,N_order,N_measure,N_thermal,lambda U:Chiral.Measure_G(U,SU),"Greens")
+        #N_tau = Chiral_run.calibration(beta,N,SU,order,N_order,N_tau)
+        Chiral_run.measure_func_1D(beta,N,SU,order,N_order,N_measure,N_thermal,lambda U:Chiral.Measure_ww_corr(U,SU),"ww corr")
         pass
     model_params = {'n_length': N,'su_parameter': SU, 'order': order, 'n_measure': N_measure, 'n_thermal': N_thermal, 'n_order':N_order }
     #print(sus2(1.08,N,SU,order,N_order,N_measure,N_thermal))
-    observable_name = 'Susceptibility'
-    file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(1.08) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    #observable_name = 'Susceptibility'
+    #file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(1.08) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
     #print(Stats.Stats(np.load(file_name)).estimate()[0])
-    print(corr_len(1.62,N,SU,order,N_order,N_measure,N_thermal))
+    #print(corr_len(1.08,N,SU,order,N_order,N_measure,N_thermal))
+    #Greens_mom(0.8667,N,SU,order,N_order,N_measure,N_thermal)
+    
+    observable_name = 'Greens 0 Mom'
+    file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(0.8667) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    
+    ydata = np.load(file_name)
+    xdata = np.arange(N+1)
+    def model(t, dE):
+        L = N
+        return  (np.cosh(1/dE*(t-L/2))-1 ) / (np.cosh(1/dE*L/2) -1)
+    a =curve_fit(model,xdata,ydata,absolute_sigma=True,)
+    xs = [model(d,a[0][0]) for d in xdata]
+    print(a[0][0])
+    plt.plot(xdata,xs)
+
+    plt.plot(xdata,np.load(file_name),label='holaaa')
+    plt.legend()
+    plt.show()
+    
 
     #plotting.plot_e_desinty([0.1,0.2,0.3], model_params)
     #plotting.plot_generic_data_beta(betas2, model_params,'Susceptibility','$\chi$')
@@ -71,6 +92,19 @@ def corr_len_2(beta,N,SU,order,N_order,N_measure,N_thermal):
     sus = sus /N**2
     result = result/(4*sus)
     return (result**0.5,sus)
+def Greens_mom(beta,N,SU,order,N_order,N_measure,N_thermal):
+    observable_name = 'Greens'
+    file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    data = np.load(file_name)
+    values = np.array([[Stats.Stats(data[i][j]).estimate()[0] for j in range(N)]for i in range(N)])
+    Greens_zero_mom = np.zeros((N+1))
+    for i in range(N):
+        Greens_zero_mom[i] = np.sum(values[i])
+    Greens_zero_mom[N] = Greens_zero_mom[0]
+    observable_name = 'Greens 0 Mom'
+    file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    np.save(file_name,Greens_zero_mom/Greens_zero_mom[0])
+    
 def sus2(beta,N,SU,order,N_order,N_measure,N_thermal):
     observable_name = 'Greens'
     file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'

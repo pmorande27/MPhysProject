@@ -165,3 +165,35 @@ class Stats(object):
     def autocorrelator(data, c=4.0):
     
         return Stats.autocorrelator_repeats(data.reshape((data.shape[0], 1)))
+    @staticmethod
+    def correlator(xs, ys):
+   
+   
+        return Stats.correlator_repeats(xs.reshape((xs.shape[0], 1)), ys.reshape((ys.shape[0], 1)))
+    
+    @staticmethod
+    def correlator_repeats(xs, ys):
+    
+        N, M = xs.shape # length of one data measurement, number of measurements
+
+        # get ACF and its error
+        CFs = np.zeros_like(xs)
+        for i in range(M):
+            CFs[:,i] = Stats.corr_func_1D(xs[:,i], ys[:,i])
+
+        CF, CF_err = np.mean(CFs, axis=1), np.std(CFs, axis=1) / np.sqrt(M)
+        
+        # correct error by IAT
+        for i in range(N):
+            IAT, IAT_err = Stats.autocorrelator(CFs[i])
+            CF_err[i] *= np.sqrt(IAT)
+
+        return CF, CF_err
+    @staticmethod
+    def corr_func_1D(x, y):
+    
+        f = np.fft.fft(x)
+        g = np.fft.fft(y)
+        cf = np.fft.ifft(f * np.conjugate(g)).real
+
+        return cf
