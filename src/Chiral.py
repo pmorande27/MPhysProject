@@ -205,7 +205,7 @@ class Chiral(object):
                     raise Exceptions.CalibrationException('The Acceptance rate of the run is too low to be acceptable, consider recalibrating or running again')
                 if (i%self.renorm_freq==0 and (self.SU == 3 or self.SU==4)):
                     self.U = Mat.reunitarisation(self.U.copy(), self.SU)
-                    print(np.average(Mat.determinant(self.U)))
+                    #print(np.average(Mat.determinant(self.U)))
             rate = self.accepted/self.tries
             
             print(rate)
@@ -244,4 +244,15 @@ class Chiral(object):
             
             print((self.accepted/self.tries)*100)
                     
-
+    @staticmethod
+    def Measure_Sus(U,SU):
+        N = len(U)
+        return 1/(SU*N**2) *(np.einsum('ijkl,mnlk->',U,Mat.dagger(U))).real
+    @staticmethod
+    def Measure_G(U,SU):
+        return 1/SU *np.einsum('ijkl,lk->ij',U,Mat.dagger(U)[0,0]).real
+    @staticmethod
+    def Measure_G2(U,SU):
+        return 1/SU *np.einsum('ijkl,mnlk->ijmn',U,Mat.dagger(U)).real
+    
+        
