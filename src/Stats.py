@@ -184,11 +184,8 @@ class Stats(object):
         CF, CF_err = np.mean(CFs, axis=1), np.std(CFs, axis=1) / np.sqrt(M)
         
         # correct error by IAT
-        for i in range(N):
-            IAT, IAT_err = Stats.autocorrelator(CFs[i])
-            CF_err[i] *= np.sqrt(IAT)
-
-        return CF, CF_err
+       
+        return CF
     @staticmethod
     def corr_func_1D(x, y):
     
