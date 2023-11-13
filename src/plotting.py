@@ -4,7 +4,24 @@ Module used to make all hte relevants plots for the Chiral Model
 import numpy as np
 import matplotlib.pyplot as plt
 from Stats import Stats
+from scipy.optimize import curve_fit
 
+def Greens_mom_2(beta,N,SU,order,N_order,N_measure,N_thermal):
+    observable_name = 'ww corr'
+    file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    values,values_err= np.load(file_name)
+    xdata = np.arange(N+1)
+    def model(t, dE):
+        L = N
+        return  (np.cosh(1/dE*(t-L/2))-1 ) / (np.cosh(1/dE*L/2) -1)
+    a =curve_fit(model,xdata,values/values[0],sigma=values_err/values[0])
+    xs = [model(d,4.8) for d in xdata]
+    print(a[0][0])
+    print(a)
+    plt.plot(xdata,xs)
+
+    plt.errorbar(xdata,values/values[0],values_err/values[0],fmt='.k')
+    plt.show()
 
 def plot_e_desinty(betas, model_params):
     """

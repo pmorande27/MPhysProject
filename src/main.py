@@ -8,20 +8,21 @@ import Chiral_run
 import Stats
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+import processing
 
 def main():
 
-    N = 64
-    SU = 2
-    betas1 = [0.8667]
-    order = 0
-    N_order = 0
-    N_tau = 10
+    N = [36]
+    SU = 3
+    betas1 = [1.62]
+    order = 10
+    N_order = 10
+    N_tau = 15
     N_thermal = 10**4
-    N_measure = 10**4
-    for beta in betas1:
-        #N_tau = Chiral_run.calibration(beta,N,SU,order,N_order,N_tau)
-        #Chiral_run.measure_func_1D(beta,N,SU,order,N_order,N_measure,N_thermal,lambda U:Chiral.Measure_ww_corr(U,SU),"ww corr")
+    N_measure = 10**5
+    for i,beta in enumerate(betas1):
+        #N_tau = Chiral_run.calibration(beta,N[i],SU,order,N_order,N_tau)
+        Chiral_run.measure_func_1D(beta,N[i],SU,order,N_order,N_measure,N_thermal,lambda U:Chiral.Measure_ww_corr(U,SU),"ww corr")
         pass
     model_params = {'n_length': N,'su_parameter': SU, 'order': order, 'n_measure': N_measure, 'n_thermal': N_thermal, 'n_order':N_order }
     #print(sus2(1.08,N,SU,order,N_order,N_measure,N_thermal))
@@ -30,7 +31,8 @@ def main():
     #print(Stats.Stats(np.load(file_name)).estimate()[0])
     #print(corr_len(1.08,N,SU,order,N_order,N_measure,N_thermal))
     #Greens_mom(0.8667,N,SU,order,N_order,N_measure,N_thermal)
-    Greens_mom_2(betas1[0],N,SU,order,N_order,N_measure,N_thermal)
+    #processing.process_ww_corr(betas1[0],N[0],SU,order,N_order,N_measure,N_thermal)
+    #plotting.Greens_mom_2(betas1[0],N[0],SU,order,N_order,N_measure,N_thermal)
     
     """observable_name = 'Greens 0 Mom'
     file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(0.8667) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
@@ -103,29 +105,7 @@ def Greens_mom(beta,N,SU,order,N_order,N_measure,N_thermal):
     observable_name = 'Greens 0 Mom'
     file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
     np.save(file_name,Greens_zero_mom/Greens_zero_mom[0])
-def Greens_mom_2(beta,N,SU,order,N_order,N_measure,N_thermal):
-    observable_name = 'ww corr'
-    file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
-    data = np.load(file_name)
-    values = np.zeros(N+1)
-    values_err = np.zeros(N+1)
-    for i in range(N):
 
-        values[i],values_err[i]= Stats.Stats(data[i]).estimate()
-    values[N],values_err[N] = values[0],values_err[0]
-    xdata = np.arange(N+1)
-    def model(t, dE):
-        L = N
-        return  (np.cosh(1/dE*(t-L/2))-1 ) / (np.cosh(1/dE*L/2) -1)
-    a =curve_fit(model,xdata,values/values[0],sigma=values_err/values[0])
-    xs = [model(d,a[0][0]) for d in xdata]
-    print(a[0][0])
-    print(a)
-    plt.plot(xdata,xs)
-
-    plt.errorbar(xdata,values/values[0],values_err/values[0],fmt='.k')
-    plt.show()
-    
     
     
 def sus2(beta,N,SU,order,N_order,N_measure,N_thermal):
