@@ -12,17 +12,17 @@ import processing
 
 def main():
 
-    N = [36]
-    SU = 3
-    betas1 = [1.62]
-    order = 10
-    N_order = 10
-    N_tau = 15
+    N = [64]
+    SU = 2
+    betas1 = [0.8667]
+    order = 0
+    N_order = 0
+    N_tau = 60
     N_thermal = 10**4
-    N_measure = 10**5
+    N_measure = 10**6
     for i,beta in enumerate(betas1):
         #N_tau = Chiral_run.calibration(beta,N[i],SU,order,N_order,N_tau)
-        Chiral_run.measure_func_1D(beta,N[i],SU,order,N_order,N_measure,N_thermal,lambda U:Chiral.Measure_ww_corr(U,SU),"ww corr")
+        #Chiral_run.measure_func_1D(beta,N[i],SU,order,N_order,N_measure,N_thermal,lambda U:Chiral.Measure_ww_corr(U,SU),"ww corr")
         pass
     model_params = {'n_length': N,'su_parameter': SU, 'order': order, 'n_measure': N_measure, 'n_thermal': N_thermal, 'n_order':N_order }
     #print(sus2(1.08,N,SU,order,N_order,N_measure,N_thermal))
@@ -31,8 +31,8 @@ def main():
     #print(Stats.Stats(np.load(file_name)).estimate()[0])
     #print(corr_len(1.08,N,SU,order,N_order,N_measure,N_thermal))
     #Greens_mom(0.8667,N,SU,order,N_order,N_measure,N_thermal)
-    #processing.process_ww_corr(betas1[0],N[0],SU,order,N_order,N_measure,N_thermal)
-    #plotting.Greens_mom_2(betas1[0],N[0],SU,order,N_order,N_measure,N_thermal)
+    processing.process_ww_corr(betas1[0],N[0],SU,order,N_order,N_measure,N_thermal)
+    plotting.Greens_mom_2(betas1[0],N[0],SU,order,N_order,N_measure,N_thermal)
     
     """observable_name = 'Greens 0 Mom'
     file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(0.8667) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
@@ -138,26 +138,4 @@ def corr_len(beta,N,SU,order,N_order,N_measure,N_thermal):
     """
     return (1/(4*np.sin(np.pi/N)*np.sin(np.pi/N))*(Gf[0,0]/Gf[0,1]-1))**0.5,Gf[0,0]
 main()
-def main2():
-    SU = 3
-    N = 2
-    Identity = np.random.uniform(size=(N,N,SU,SU))+1j*np.random.uniform(size=(N,N,SU,SU))
-   
-   
-    print(np.einsum('ijkl,mnlk->',Identity,Mat.dagger(Identity)).real/(3*N**2))
-    print(susceptibility_naive(Identity))
-    print(1/SU *np.einsum('ijkl,lk->ij',Identity,Mat.dagger(Identity)[0,0]).real)
 
-def susceptibility_naive(phi):
-    N = len(phi)
-    G = np.zeros((N,N),complex)
-    for i in range(N):
-        for j in range(N):
-            phi_y = np.roll(phi, shift=(i,j), axis=(0,1))
-            A = Mat.multiply_matrices(phi, Mat.dagger(phi_y))
-            G += np.einsum('ijkk->ij',A+Mat.dagger(A))
-
-    Chi = np.sum(G) / (2*3*N**2)
-
-    return Chi
-#main2()
