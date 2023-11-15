@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 import matrix_routines as Mat
 import scipy as sci
-class TestSolarSystem(unittest.TestCase):
+class TestMatrixRoutines(unittest.TestCase):
     def setUp(self) -> None:
         self.N = 2
         self.SU = 3
