@@ -288,7 +288,7 @@ def weak_coupling(beta):
 def plot_Greens_0_mom(beta,N,SU,order,N_order,N_measure,N_thermal):
     observable_name = 'Greens 0 Mom'
     file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
-    values = np.load(file_name)
+    values,errors = np.load(file_name)
     xdata = np.arange(N+1)
     def model(t, dE):
         L = N
@@ -298,7 +298,7 @@ def plot_Greens_0_mom(beta,N,SU,order,N_order,N_measure,N_thermal):
     
     print(a)
     ax = plt.subplot(111)
-    ax.plot(xdata,values,'.k')
+    ax.errorbar(xdata,values,yerr=errors,fmt='.k')
     ax.plot(xdata,ys)
     ax.spines[['right', 'top']].set_visible(False)
     plt.show()
