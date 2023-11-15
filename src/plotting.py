@@ -296,7 +296,7 @@ def plot_Greens_0_mom(beta,N,SU,order,N_order,N_measure,N_thermal):
     a =curve_fit(model,xdata,values/values[0])
     ys = [model(d,a[0][0]) for d in xdata]
     
-    print(a)
+    print(a[0][0])
     ax = plt.subplot(111)
     ax.errorbar(xdata,values,yerr=errors,fmt='.k')
     ax.plot(xdata,ys)
@@ -313,9 +313,22 @@ def plot_Greens_diags(beta,N,SU,order,N_order,N_measure,N_thermal):
     a =curve_fit(model,xdata,values/values[0])
     ys = [model(d,a[0][0]) for d in xdata]
     
-    print(a)
+    print(a[0][0]/np.sqrt(2))
     ax = plt.subplot(111)
     ax.errorbar(xdata,values,yerr=errors,fmt='.k')
     ax.plot(xdata,ys)
+    ax.spines[['right', 'top']].set_visible(False)
+    plt.show()
+def plot_Greens_diags2(beta,N,SU,order,N_order,N_measure,N_thermal):
+    observable_name = 'Greens Diags'
+    file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    values,errors = np.load(file_name)
+    xdata = np.arange(N-1)
+    results =1/ np.abs(np.sqrt(2)*np.array([np.log(values[i+1])-np.log(values[i]) for i in range(N-1)]))
+    print(results)
+    
+    ax = plt.subplot(111)
+    #ax.errorbar(xdata,values,yerr=errors,fmt='.k')
+    ax.plot(xdata,results)
     ax.spines[['right', 'top']].set_visible(False)
     plt.show()
