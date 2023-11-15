@@ -45,3 +45,19 @@ def process_Greens_2(beta,N,SU,order,N_order,N_measure,N_thermal):
 
 
 
+def process_Action(beta,N,SU,order,N_order,N_measure,N_thermal):
+    observable_name = 'Action'
+    file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    data = np.load(file_name)
+    value, error = Stats.Stats(data).estimate()
+    file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    np.save(file_name,(value,error))
+
+def process_Generic_observable(beta,N,SU,order,N_order,N_measure,N_thermal, observable_name):
+    
+    file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    data = np.load(file_name)
+    value, error = Stats.Stats(data).estimate()
+    file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    np.save(file_name,(value,error))
+

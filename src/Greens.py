@@ -27,7 +27,7 @@ def susceptibility_from_complete_greens_function(beta,N,SU,order,N_order,N_measu
     
 def second_moment_correletion_length_two(beta,N,SU,order,N_order,N_measure,N_thermal):
     observable_name = 'Greens'
-    file_name = "ChiralResults/Processed"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
     values, error = np.load(file_name)
     result = 0
     sus = 0
@@ -39,7 +39,7 @@ def second_moment_correletion_length_two(beta,N,SU,order,N_order,N_measure,N_the
     return (result/(4*sus))**0.5,sus
 def second_moment_correletion_length(beta,N,SU,order,N_order,N_measure,N_thermal):
     observable_name = 'Greens'
-    file_name = "ChiralResults/Processed"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
     values, error = np.load(file_name)
     Gf = np.fft.fft2(values)
     p = 2*np.pi/N
@@ -51,7 +51,7 @@ def second_moment_correletion_length(beta,N,SU,order,N_order,N_measure,N_thermal
 
 def second_moment_correletion_length_three(beta,N,SU,order,N_order,N_measure,N_thermal):
     observable_name = 'Greens 2'
-    file_name = "ChiralResults/Processed"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
     values, error = np.load(file_name)
     result = 0
     sus = 0

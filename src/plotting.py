@@ -13,14 +13,23 @@ def Greens_mom_2(beta,N,SU,order,N_order,N_measure,N_thermal):
     xdata = np.arange(N+1)
     def model(t, dE):
         L = N
-        return  (np.cosh(1/dE*(t-L/2))-1 ) / (np.cosh(1/dE*L/2) -1)
+        return  (np.cosh(1/dE*(t-L/2)) -1) / (np.cosh(1/dE*L/2)-1)
     a =curve_fit(model,xdata,values/values[0],sigma=values_err/values[0])
-    xs = [model(d,4.8) for d in xdata]
+    xs = [model(d,a[0][0]) for d in xdata]
     print(a[0][0])
     print(a)
-    plt.plot(xdata,xs)
+    ax = plt.subplot(111)
+    ax.plot(xdata,xs,label='Best Fit Model, $\epsilon=$'+str(round(a[0][0],3)))
 
-    plt.errorbar(xdata,values/values[0],values_err/values[0],fmt='.k')
+    ax.errorbar(xdata,values/values[0],values_err/values[0],fmt='.k',label='HMC Data')
+    plt.yscale('log')
+    plt.xlabel('t')
+    plt.ylabel('ww corr')
+    plt.legend()
+    ax.spines[['right', 'top']].set_visible(False)
+    plt.title(" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal))
+    file_name =  "ChiralResults/Processed/Plots/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.svg'
+    plt.savefig(file_name)
     plt.show()
 
 def plot_e_desinty(betas, model_params):
@@ -42,7 +51,7 @@ def plot_e_desinty(betas, model_params):
 
         if model_params["su_parameter"] == 2:
 
-            file_name = "ChiralResults/Action/Action beta = " + str(beta) \
+            file_name = "ChiralResults/Processed/Action/Action beta = " + str(beta) \
                         + " N = " + str(model_params["n_length"])
 
             file_name += " SU = " + str(model_params["su_parameter"]) + \
@@ -53,18 +62,17 @@ def plot_e_desinty(betas, model_params):
 
             file_name += str(model_params["n_thermal"])+'.npy'
 
-            values = np.load(file_name)
+            result[i],error[i] = np.load(file_name)
 
-            result[i], error[i] = Stats(values).estimate()
 
-        file_name = "ChiralResults/Action/Action beta = " + \
+        file_name = "ChiralResults/Processed/Action/Action beta = " + \
                     str(betas[i]) + " N = " + str(model_params["n_length"]) + \
                      " SU = " + str(model_params["su_parameter"])+" Order = " \
                     + str(model_params["order"])+" N Order = " + str(model_params['n_order']) \
                     + " N measurements = " + str(model_params["n_measure"]) + " N Thermal = " \
                     + str(model_params["n_thermal"]) + '.npy'
 
-        result_2[i], error_2[i] = Stats(np.load(file_name)).estimate()
+        result_2[i], error_2[i] = np.load(file_name)
 
     axis = plt.subplot(111)
 
@@ -95,9 +103,9 @@ def plot_e_desinty(betas, model_params):
 
         plt.plot(np.linspace(0, 2, 100), values, 'b', label='Strong Coupling Expansion')
 
-        #values_w = [weak_2(beta) for beta in np.linspace(1, max(betas), 1000)]
+        values_w = [weak_2(beta) for beta in np.linspace(1, max(betas), 1000)]
 
-        #plt.plot(np.linspace(1, max(betas), 1000), values_w, 'r', label='Weak Coupling Expansion')
+        plt.plot(np.linspace(1, max(betas), 1000), values_w, 'r', label='Weak Coupling Expansion')
 
     if model_params["su_parameter"] == 4:
 
@@ -109,7 +117,7 @@ def plot_e_desinty(betas, model_params):
 
         plt.plot(np.linspace(0, 3, 100), strong, 'b', label='Strong Coupling Expansion')
 
-    plt.xlim(0, 2)
+    plt.xlim(0, max(betas)+0.1)
 
     plt.legend()
 
@@ -119,7 +127,7 @@ def plot_e_desinty(betas, model_params):
 
     axis.spines[['right', 'top']].set_visible(False)
 
-    plt.savefig('ChiralResults/Plots/Energy_density_SU_' + str(model_params["su_parameter"]) \
+    plt.savefig('ChiralResults/Processed/Plots/Energy_density_SU_' + str(model_params["su_parameter"]) \
                 + "_N_" + str(model_params["n_length"]) + 'Order_' \
                 + str(model_params["order"]) + 'N_order_' + str(model_params['n_order']) + '.svg')
 
@@ -139,7 +147,7 @@ def plot_sus(betas, n_length, su_parameter):
 
     for i, beta in enumerate(betas):
 
-        file_name_2 = "ChiralResults/Susceptibility/Susceptibility 2" + \
+        file_name_2 = "ChiralResults/Processed/Susceptibility/Susceptibility 2" + \
             " beta = " + str(beta) +" N = "+str(n_length)+ " SU = " + str(su_parameter)+".npy"
 
         #values = np.load(file_name)
@@ -148,7 +156,7 @@ def plot_sus(betas, n_length, su_parameter):
 
         #result[i],error[i] = Stats(values).estimate()
 
-        result_2[i], error_2[i] = Stats(values_2).estimate()
+        result_2[i], error_2[i] = values_2
 
     axis = plt.subplot(111)
 
@@ -166,7 +174,7 @@ def plot_sus(betas, n_length, su_parameter):
 
     axis.spines[['right', 'top']].set_visible(False)
 
-    plt.savefig('ChiralResults/Plots/Susceptibility.svg')
+    plt.savefig('ChiralResults/Processed/Plots/Susceptibility.svg')
 
     plt.show()
 
@@ -183,7 +191,7 @@ def plot_generic_data_beta(betas, model_params, observable_name, symbol):
 
     for i, beta in enumerate(betas):
 
-        file_name = "ChiralResults/" + observable_name + "/" + \
+        file_name = "ChiralResults/Processed" + observable_name + "/" + \
                     observable_name + " beta = " + str(beta) + " N = " + \
                     str(model_params["n_length"]) + \
                     " SU = " + str(model_params["su_parameter"]) + " Order = " \
@@ -192,7 +200,7 @@ def plot_generic_data_beta(betas, model_params, observable_name, symbol):
                     str(model_params["n_measure"]) + \
                     " N Thermal = " + str(model_params["n_thermal"]) + '.npy'
 
-        result[i], err[i] = Stats(np.load(file_name)).estimate()
+        result[i], err[i] = np.load(file_name)
 
     axis = plt.subplot(111)
 
@@ -276,3 +284,21 @@ def weak_coupling(beta):
     q_one = -0.067
 
     return 1- 3/(8 * beta) * (1 + 1/(16 * beta) + (1/64 + 3/16 * q_one + 1/8 * q_one) * 1/beta**2)
+
+def plot_Greens_0_mom(beta,N,SU,order,N_order,N_measure,N_thermal):
+    observable_name = 'Greens 0 Mom'
+    file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    values = np.load(file_name)
+    xdata = np.arange(N+1)
+    def model(t, dE):
+        L = N
+        return  (np.cosh(1/dE*(t-L/2)) -1) / (np.cosh(1/dE*L/2)-1)
+    a =curve_fit(model,xdata,values/values[0])
+    ys = [model(d,a[0][0]) for d in xdata]
+    
+    print(a)
+    ax = plt.subplot(111)
+    ax.plot(xdata,values,'.k')
+    ax.plot(xdata,ys)
+    ax.spines[['right', 'top']].set_visible(False)
+    plt.show()
