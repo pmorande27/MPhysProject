@@ -14,6 +14,20 @@ def Greens_mom(beta,N,SU,order,N_order,N_measure,N_thermal):
     observable_name = 'Greens 0 Mom'
     file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
     np.save(file_name,(Greens_zero_mom/Greens_zero_mom[0],error_zero/Greens_zero_mom[0]))
+def ww_diag(beta,N,SU,order,N_order,N_measure,N_thermal):
+    observable_name = 'Greens'
+    file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    values,errors  = np.load(file_name)
+    Greens_diag = np.zeros((N+1))
+    error_diag = np.zeros((N+1))
+    for i in range(N):
+        Greens_diag[i] =sum([values[(i-j)%N,j] for j in range(N)])
+        error_diag[i] = np.sqrt(np.sum([errors[(i-j)%N,j]**2 for j in range(N)]))
+    Greens_diag[N] = Greens_diag[0]
+    error_diag[N] = error_diag[0]
+    observable_name = 'Greens Diags'
+    file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    np.save(file_name,(Greens_diag/Greens_diag[0],error_diag/Greens_diag[0]))
 def susceptibility_from_complete_greens_function(beta,N,SU,order,N_order,N_measure,N_thermal):
     observable_name = 'Greens 2'
     file_name = "ChiralResults/Processed"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
