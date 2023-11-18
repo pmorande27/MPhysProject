@@ -17,7 +17,7 @@ def multiply_matrices(lattice_a, lattice_b):
     of all the elements (matrix_wise) of two lattices
     """
 
-    return np.einsum('ijkl,ijlm->ijkm', lattice_a, lattice_b)
+    return np.matmul(lattice_a, lattice_b)
 
 def exponential(lattice, order, su_parameter, order_n):
     """
