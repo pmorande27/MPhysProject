@@ -1,6 +1,7 @@
 import numpy as np
 import unittest
 from Chiral import Chiral
+import matrix_routines as Mat
 
 class TestChiral(unittest.TestCase):
     def setUp(self):
@@ -103,5 +104,32 @@ class TestChiral(unittest.TestCase):
         SU = 3
         result = Chiral.Measure_Sus(U, SU)
         self.assertEqual(result, 4.0)
+    def test_Measure_G(self):
+        U = np.zeros((2, 2, 3, 3), dtype=complex)
+        for i in range(2):
+            for j in range(2):
+                for k in range(3):
+                    U[i, j, k, k] = 1
+        SU = 3
+        result = Chiral.Measure_G(U, SU)
+        np.testing.assert_equal(result, np.ones((2,2)))
+    def test_Measure_ww_corr(self):
+        U = np.zeros((4,4, 3, 3), dtype=complex)
+        N = 4
+        SU = 3
+        for i in range(N):
+            for j in range(N):
+                for k in range(3):
+                    U[i, j, k, k] = 1
+        SU = 3
+        expected = np.zeros(N)
+        for i in range(N):
+            for j in range(N):
+                for k in range(N):
+                    for l in range(N):
+                        expected[i] += np.einsum('kl,lk->', U[l,k], Mat.dagger(U)[(i+l)%N,j]).real/N**2
+        result = Chiral.Measure_ww_corr(U, SU)
+        np.testing.assert_equal(result, expected)
+
 
    
