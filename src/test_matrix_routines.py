@@ -24,10 +24,10 @@ class TestMatrixRoutines(unittest.TestCase):
         np.testing.assert_array_equal(Mat.multiply_matrices(self.A, self.Identity), expected_output)
 
     def test_multiply_matrices_random_input(self):
-        B = np.random.uniform(size=(self.N, self.N, self.SU, self.SU))
+        B = np.random.uniform(size=(self.N, self.N, self.SU, self.SU))+1j*np.random.uniform(size = (self.N,self.N,self.SU,self.SU))
         # Compute the expected output using a known correct method
-        expected_output = np.matmul(self.A, B)
-        np.testing.assert_array_almost_equal(Mat.multiply_matrices(self.A, B), expected_output)
+        expected_output = np.einsum('ijkl,ijlm->ijkm',self.C, B)
+        np.testing.assert_array_almost_equal(Mat.multiply_matrices(self.C, B), expected_output)
     def test_matrix_multiplication_with_identity(self):
         self.assertTrue(np.all(self.A ==Mat.multiply_matrices(self.A,self.Identity) ))
         self.assertTrue(np.all(Mat.multiply_matrices(self.A,self.Identity) ==Mat.multiply_matrices(self.A,self.Identity) ))
