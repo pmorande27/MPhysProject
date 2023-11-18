@@ -2,7 +2,7 @@ import numpy as np
 import unittest
 from Chiral import Chiral
 import matrix_routines as Mat
-
+import scipy
 class TestChiral(unittest.TestCase):
     def setUp(self):
         self.chiral = Chiral(2, 1.0, 1, 0, 1, 0.1, 1, SU=3)
@@ -172,6 +172,56 @@ class TestChiral(unittest.TestCase):
         p, Unew = Chiral.molecular_dynamics(p_0, U_0, beta, epsilon, N_tau, SU, order, identity, order_N)
         np.testing.assert_array_almost_equal(p, np.zeros((2, 2, 3, 3), dtype=complex))
         np.testing.assert_array_almost_equal(Unew, U_0)
+    
+    def test_exponential_matrix_identity(self):
+        N = 2
+        SU = 3
+        identity = np.zeros((2,2,3,3), dtype=complex)
+        for i in range(N):
+            for j in range(N):
+                identity = np.eye(SU)
+        order = 10
+        result = Chiral.exponential_matrix(identity, order)
+        np.testing.assert_array_almost_equal(result, identity*np.e)
+    
+    def test_exponential_matrix_random_input(self):
+        N = 5
+        SU = 3
+        A = np.random.normal(size = (N,N,SU,SU))
+        order = 100
+        result = Chiral.exponential_matrix(A, order)
+        expected = np.zeros((N,N,SU,SU))
+        for i in range(N):
+            for j in range(N):
+                expected[i,j] = scipy.linalg.expm(A[i,j])
+        np.testing.assert_array_almost_equal(result,expected )
+
+    def test_exponential_matrix_random_input_complex(self):
+        N = 5
+        SU = 3
+        A = np.random.normal(size = (N,N,SU,SU))+1j*np.random.normal(size = (N,N,SU,SU))
+        order = 100
+        result = Chiral.exponential_matrix(A, order)
+        expected = np.zeros((N,N,SU,SU),complex)
+        for i in range(N):
+            for j in range(N):
+                expected[i,j] = scipy.linalg.expm(A[i,j])
+        np.testing.assert_array_almost_equal(result,expected )
+    
+    def test_exponential_matrix_zero_input(self):
+        N = 2
+        SU = 3
+        A = np.zeros((N,N,SU,SU))
+        order = 10
+        result = Chiral.exponential_matrix(A, order)
+        expected = np.zeros((N,N,SU,SU))
+        for i in range(N):
+            for j in range(N):
+                expected[i,j] = np.eye(SU)
+        np.testing.assert_array_almost_equal(result,expected )
 
 
-   
+
+
+
+    
