@@ -286,7 +286,7 @@ def weak_coupling(beta):
     return 1- 3/(8 * beta) * (1 + 1/(16 * beta) + (1/64 + 3/16 * q_one + 1/8 * q_one) * 1/beta**2)
 
 def plot_Greens_0_mom(beta,N,SU,order,N_order,N_measure,N_thermal):
-    observable_name = 'Greens 0 Mom'
+    observable_name = 'Greens 0 mom'
     file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
     ww_cor,ww_cor_err = np.load(file_name)
     ww_cor, ww_cor_err = ww_cor/ww_cor[0], ww_cor_err/ww_cor[0]
