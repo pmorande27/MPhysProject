@@ -251,7 +251,29 @@ class Chiral(object):
         return 1/(SU*N**2) *(np.einsum('ijkl,mnlk->',U,Mat.dagger(U))).real
     @staticmethod
     def Measure_G(U,SU):
-        return 1/SU *np.einsum('ijkl,lk->ij',U,Mat.dagger(U)[0,0]).real
+        Udag = Mat.dagger(U)
+        N = len(U)
+        result = np.zeros((N,N))
+        for i in range(SU):
+            for j in range(SU):
+                A = np.fft.fft2(U[:,:,i,j])
+                B = np.fft.fft2(np.conjugate((Udag[:,:,j,i])))
+            result += np.real(np.fft.ifft2(A*np.conjugate(B)))
+        #return 1/(SU) *np.einsum('ijkl,lk->ij',U,Mat.dagger(U)[0,0]).real
+        return 1/(SU*N**2) *result
+    @staticmethod
+    def Measure_G_0_mom(U,SU):
+        Udag = Mat.dagger(U)
+        N = len(U)
+        result = np.zeros((N,N))
+        for i in range(SU):
+            for j in range(SU):
+                A = np.fft.fft2(U[:,:,i,j])
+                B = np.fft.fft2(np.conjugate((Udag[:,:,j,i])))
+            result += np.real(np.fft.ifft2(A*np.conjugate(B)))
+        result = result/(SU*N**2)
+        return np.einsum('ij->j',result)
+
     @staticmethod
     def Measure_G2(U,SU):
         return 1/SU *np.einsum('ijkl,mnlk->ijmn',U,Mat.dagger(U)).real
