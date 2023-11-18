@@ -131,5 +131,47 @@ class TestChiral(unittest.TestCase):
         result = Chiral.Measure_ww_corr(U, SU)
         np.testing.assert_equal(result, expected)
 
+    def test_Hamiltonian_with_different_parameters(self):
+        p = np.zeros((2, 2, 3, 3), dtype=complex)
+        U = np.zeros((2, 2, 3, 3), dtype=complex)
+        for i in range(2):
+            for j in range(2):
+                for k in range(3):
+                    U[i, j, k, k] = 1
+        beta = 2.0
+        c = 3
+        result = Chiral.Hamiltonian(p, U, beta, c)
+        self.assertEqual(result, -32.0)  # Assuming Hamiltonian of identity matrix is -24.0
+
+    def test_dot_p_with_different_parameters(self):
+        U = np.zeros((2, 2, 3, 3), dtype=complex)
+        for i in range(2):
+            for j in range(2):
+                for k in range(3):
+                    U[i, j, k, k] = 1
+        beta = 2.0
+        SU = 2
+        identity = U.copy()
+        result = Chiral.dot_p(U, beta, SU, identity)
+        np.testing.assert_array_almost_equal(result, np.zeros((2, 2, 3, 3), dtype=complex))
+
+    def test_molecular_dynamics_with_different_parameters(self):
+        p_0 = np.zeros((2, 2, 3, 3), dtype=complex)
+        U_0 = np.zeros((2, 2, 3, 3), dtype=complex)
+        for i in range(2):
+            for j in range(2):
+                for k in range(3):
+                    U_0[i, j, k, k] = 1
+        beta = 2.0
+        epsilon = 0.2
+        N_tau = 2
+        SU = 2
+        order = 20
+        identity = U_0.copy()
+        order_N = 20
+        p, Unew = Chiral.molecular_dynamics(p_0, U_0, beta, epsilon, N_tau, SU, order, identity, order_N)
+        np.testing.assert_array_almost_equal(p, np.zeros((2, 2, 3, 3), dtype=complex))
+        np.testing.assert_array_almost_equal(Unew, U_0)
+
 
    
