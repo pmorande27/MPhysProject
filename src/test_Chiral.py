@@ -4,7 +4,7 @@ from Chiral import Chiral
 
 class TestChiral(unittest.TestCase):
     def setUp(self):
-        self.chiral = Chiral(2, 1.0, 1, 1, 1, 0.1, 1, SU=3)
+        self.chiral = Chiral(2, 1.0, 1, 0, 1, 0.1, 1, SU=3)
 
     def test_init(self):
         self.assertEqual(self.chiral.SU, 3)
@@ -17,7 +17,7 @@ class TestChiral(unittest.TestCase):
         self.assertEqual(self.chiral.c, 2)
         self.assertEqual(self.chiral.N, 2)
         self.assertEqual(self.chiral.N_measurement, 1)
-        self.assertEqual(self.chiral.N_thermal, 1)
+        self.assertEqual(self.chiral.N_thermal, 0)
         self.assertEqual(self.chiral.beta, 1.0)
 
     def test_action(self):
@@ -80,9 +80,10 @@ class TestChiral(unittest.TestCase):
 
     def test_thermalize(self):
         self.chiral.thermalize()
-        self.assertEqual(self.chiral.tries, 1)
+        self.assertEqual(self.chiral.tries, 0)
 
     def test_generate_measurements(self):
+        self.chiral.U = np.random.normal(size =(2, 2, 3, 3))
         def observable(U):
             return 1.0
         results, rate = self.chiral.generate_measurements(observable)
