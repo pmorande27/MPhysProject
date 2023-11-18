@@ -127,8 +127,7 @@ class Chiral(object):
         
         exponential_matrix = Mat.exponential(epsilon * p, order, SU, order_N)
         
-        Unew = Mat.multiply_matrices(exponential_matrix, U_0)
-        #np.einsum('ijkl,ijlm->ijkm', exponential_matrix,U_0)
+        Unew = np.einsum('ijkl,ijlm->ijkm', exponential_matrix,U_0)
        
         for i in range(N_tau):
             
@@ -137,8 +136,7 @@ class Chiral(object):
             exponential_matrix = Mat.exponential(epsilon * p, order, SU, order_N)
             
             
-            Unew = Mat.multiply_matrices(exponential_matrix, Unew)
-            #np.einsum('ijkl,ijlm->ijkm', exponential_matrix, Unew)
+            Unew = np.einsum('ijkl,ijlm->ijkm', exponential_matrix, Unew)
         
         p += epsilon/2 * Chiral.dot_p(Unew, beta, SU, identity)
         
@@ -253,7 +251,46 @@ class Chiral(object):
         return 1/(SU*N**2) *(np.einsum('ijkl,mnlk->',U,Mat.dagger(U))).real
     @staticmethod
     def Measure_G(U,SU):
-        return 1/SU *np.einsum('ijkl,lk->ij',U,Mat.dagger(U)[0,0]).real
+        Udag = Mat.dagger(U)
+        N = len(U)
+        result = np.zeros((N,N))
+        result2 = np.zeros((N,N))
+        for i in range(SU):
+            for j in range(SU):
+                A = np.fft.fft2(U[:,:,i,j])
+                B = np.fft.fft2(np.conjugate((Udag[:,:,j,i])))
+                result += np.real(np.fft.ifft2(A*np.conjugate(B)))
+       
+        #return 1/(SU) *np.einsum('ijkl,lk->ij',U,Mat.dagger(U)[0,0]).real
+        return 1/(SU*N**2) *result
+    @staticmethod
+    def Measure_G_0_mom(U,SU):
+        Udag = Mat.dagger(U)
+        N = len(U)
+        result = np.zeros((N,N))
+        for i in range(SU):
+            for j in range(SU):
+                A = np.fft.fft2(U[:,:,i,j])
+                B = np.fft.fft2(np.conjugate((Udag[:,:,j,i])))
+                result += np.real(np.fft.ifft2(A*np.conjugate(B)))
+        result = result/(SU*N**2)
+        return np.einsum('ij->j',result)
+    @staticmethod
+    def Measure_G_diags(U,SU):
+        Udag = Mat.dagger(U)
+        N = len(U)
+        result = np.zeros((N,N))
+        for i in range(SU):
+            for j in range(SU):
+                A = np.fft.fft2(U[:,:,i,j])
+                B = np.fft.fft2(np.conjugate((Udag[:,:,j,i])))
+                result += np.real(np.fft.ifft2(A*np.conjugate(B)))
+        result = result/(SU*N**2)
+        Greens_diag = np.zeros((N))
+        for i in range(N):
+            Greens_diag[i] =sum([result[(i-j)%N,j] for j in range(N)])
+        return Greens_diag
+
     @staticmethod
     def Measure_G2(U,SU):
         return 1/SU *np.einsum('ijkl,mnlk->ijmn',U,Mat.dagger(U)).real
