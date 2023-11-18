@@ -3,6 +3,7 @@ import unittest
 from Chiral import Chiral
 import matrix_routines as Mat
 import scipy
+import Exceptions
 class TestChiral(unittest.TestCase):
     def setUp(self):
         self.chiral = Chiral(2, 1.0, 1, 0, 1, 0.1, 1, SU=3)
@@ -220,6 +221,14 @@ class TestChiral(unittest.TestCase):
                 expected[i,j] = np.eye(SU)
         np.testing.assert_array_almost_equal(result,expected )
 
+    def test_invalid_SU(self):
+        self.assertRaises(ValueError, lambda SU: Chiral(2, 1.0, 1, 0, 1, 0.1, 1, SU=SU),100)
+    
+    def test_error_in_thermalisation(self):
+        chiral = Chiral(2, 1.0, 1, 0, 1, 0.1, 1, SU=3)
+        self.assertRaises(Exceptions.ThermalizationException, chiral.generate_measurements,lambda x: x)
+
+    
 
 
 
