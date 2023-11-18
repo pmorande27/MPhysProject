@@ -21,15 +21,15 @@ def main():
     N_measure = 10**3
     for i,beta in enumerate(betas1):
         #N_tau = Chiral_run.calibration(beta,N[i],SU,order,N_order,N_tau)
-        Chiral_run.measure_func_1D(beta,N[i],SU,order,N_order,N_measure,N_thermal,lambda U:Chiral.Measure_G_0_mom(U,SU),"Greens 0 mom")
+        Chiral_run.measure_func_1D(beta,N[i],SU,order,N_order,N_measure,N_thermal,lambda U:Chiral.Measure_G_diags(U,SU),"Greens diags")
         pass
 
     model_params = {'n_length': N[0],'su_parameter': SU, 'order': order, 'n_measure': N_measure, 'n_thermal': N_thermal, 'n_order':N_order }
     #[processing.process_Action(betas1[i],N[0],SU,order,N_order,N_measure,N_thermal) for i in range(len(betas1))]
     #plotting.plot_e_desinty(betas=betas1,model_params=model_params)
-    processing.process_G_0_mom(betas1[0],N[0],SU,order,N_order,N_measure,N_thermal)
+    processing.process_G_diags(betas1[0],N[0],SU,order,N_order,N_measure,N_thermal)
     #Greens.Greens_mom(betas1[0],N[0],SU,order,N_order,N_measure,N_thermal)
-    plotting.plot_Greens_0_mom(betas1[0],N[0],SU,order,N_order,N_measure,N_thermal)
+    plotting.plot_Greens_diags(betas1[0],N[0],SU,order,N_order,N_measure,N_thermal)
 
   
 main()

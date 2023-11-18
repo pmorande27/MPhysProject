@@ -273,6 +273,21 @@ class Chiral(object):
             result += np.real(np.fft.ifft2(A*np.conjugate(B)))
         result = result/(SU*N**2)
         return np.einsum('ij->j',result)
+    @staticmethod
+    def Measure_G_diags(U,SU):
+        Udag = Mat.dagger(U)
+        N = len(U)
+        result = np.zeros((N,N))
+        for i in range(SU):
+            for j in range(SU):
+                A = np.fft.fft2(U[:,:,i,j])
+                B = np.fft.fft2(np.conjugate((Udag[:,:,j,i])))
+            result += np.real(np.fft.ifft2(A*np.conjugate(B)))
+        result = result/(SU*N**2)
+        Greens_diag = np.zeros((N))
+        for i in range(N):
+            Greens_diag[i] =sum([result[(i-j)%N,j] for j in range(N)])
+        return Greens_diag
 
     @staticmethod
     def Measure_G2(U,SU):

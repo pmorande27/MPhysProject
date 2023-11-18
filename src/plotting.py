@@ -289,11 +289,12 @@ def plot_Greens_0_mom(beta,N,SU,order,N_order,N_measure,N_thermal):
     observable_name = 'Greens 0 Mom'
     file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
     values,errors = np.load(file_name)
+    values, errors = values/values[0], errors/values[0]
     xdata = np.arange(N+1)
     def model(t, dE):
         L = N
         return  (np.cosh(1/dE*(t-L/2)) -1) / (np.cosh(1/dE*L/2)-1)
-    a =curve_fit(model,xdata,values/values[0])
+    a =curve_fit(model,xdata,values)
     ys = [model(d,a[0][0]) for d in xdata]
     
     print(a[0][0])
@@ -306,6 +307,7 @@ def plot_Greens_diags(beta,N,SU,order,N_order,N_measure,N_thermal):
     observable_name = 'Greens Diags'
     file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
     values,errors = np.load(file_name)
+    values,errors = values/values[0], errors/values[0]
     xdata = np.arange(N+1)
     def model(t, dE):
         L = N
