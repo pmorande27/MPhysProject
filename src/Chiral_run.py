@@ -18,7 +18,7 @@ def calibration(beta, N, SU, order, N_order, N_tau_guess = 2):
         lat = Chiral(N, beta, 0,0,1,epsilon, N_tau, SU, order=order, order_N = N_order)
         lat.Calibration_Runs(calibration_runs, 1000)
         rate = lat.accepted/lat.tries
-        d_rate = 0.65-rate
+        d_rate = 0.75-rate
         results[i] = (rate-up,N_tau)
         print(rate,N_tau)
         

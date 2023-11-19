@@ -9,26 +9,41 @@ from scipy.optimize import curve_fit
 def Greens_mom_2(beta,N,SU,order,N_order,N_measure,N_thermal):
     observable_name = 'ww corr'
     file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
-    values,values_err= np.load(file_name)
+    ww_cor, ww_cor_err = np.load(file_name)
+    ww_cor, ww_cor_err = ww_cor/ww_cor[0], ww_cor_err/ww_cor[0]
     xdata = np.arange(N+1)
-    def model(t, dE):
-        L = N
-        return  (np.cosh(1/dE*(t-L/2)) -1) / (np.cosh(1/dE*L/2)-1)
-    a =curve_fit(model,xdata,values/values[0],sigma=values_err/values[0])
-    xs = [model(d,a[0][0]) for d in xdata]
-    print(a[0][0])
-    print(a)
-    ax = plt.subplot(111)
-    ax.plot(xdata,xs,label='Best Fit Model, $\epsilon=$'+str(round(a[0][0],3)))
 
-    ax.errorbar(xdata,values/values[0],values_err/values[0],fmt='.k',label='HMC Data')
+    N_2 = int(N/2) 
+    ds = np.arange(N_2+1) # wall separations covering half the lattice length
+    cor = 1/2 * (ww_cor[:N_2+1] + ww_cor[N_2:][::-1])
+    cor_err = np.sqrt(ww_cor_err[:N_2+1]**2 + ww_cor_err[N_2::-1]**2) / np.sqrt(2)
+
+    # store processed correlation function data
+    def model(d,xi):
+        return (np.cosh((d-N_2)/xi) - 1) / (np.cosh(N_2/xi) - 1)
+
+    # perform the fit  
+    mask = cor > 0 # fitting range
+    popt, pcov = curve_fit(model, ds[mask], cor[mask], sigma=cor_err[mask], absolute_sigma=True)
+    cor_length = popt[0] # in units of lattice spacing
+    cor_length_err = np.sqrt(pcov[0][0])
+
+    r = cor[mask] - model(ds[mask], *popt)
+    reduced_chi2 = np.sum((r/cor_err[mask])**2) / (mask.size - 1) # dof = number of observations - number of fitted parameters
+
+    
+    fig = plt.figure(figsize=(8,6))
+
+    plt.errorbar(ds, cor, yerr=cor_err, fmt='.', capsize=2)
+    cor_length,cor_err = cor_length,cor_err
+    ds_fit = np.linspace(0, ds[mask][-1], 500)
+    plt.plot(ds_fit, model(ds_fit,*popt), c='g', label='$\\xi = %.3f \pm %.3f$\n $\chi^2/DoF = %.3f$'%(cor_length, cor_length_err, reduced_chi2))
     plt.yscale('log')
-    plt.xlabel('t')
-    plt.ylabel('ww corr')
-    plt.legend()
-    ax.spines[['right', 'top']].set_visible(False)
-    plt.title(" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal))
-    file_name =  "ChiralResults/Processed/Plots/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.svg'
+    plt.xlabel(r'wall separation $d$ [$a$]')
+    plt.ylabel('wall wall correlation $C_{ww}(d)$')
+    plt.legend(prop={'size':12}, frameon=True, loc='upper right')
+    file_name = "ChiralResults/Processed/Plots/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.svg'
+
     plt.savefig(file_name)
     plt.show()
 

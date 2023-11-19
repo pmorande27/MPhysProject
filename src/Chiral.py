@@ -59,7 +59,15 @@ class Chiral(object):
         self.accepted = 0
         
         self.tries = 0
+        ## set-up Hot Start
+        for i in range(10):
+
+            self.HMC(False)
+
+        self.accepted = 0
         
+        self.tries = 0
+
         if N_thermal != 0:
 
             self.thermalize()
@@ -142,7 +150,7 @@ class Chiral(object):
         
         return p, Unew
     
-    def HMC(self):
+    def HMC(self,flag=True):
         
         p_i = np.random.standard_normal(size = (self.N, self.N, int(self.SU**2 - 1)))
     
@@ -157,11 +165,13 @@ class Chiral(object):
         Delta_H = H_new - H
         
         self.delta_H = Delta_H
+        if flag:
+            if Delta_H <0 or np.exp(-Delta_H) > np.random.random():
         
-        if Delta_H <0 or np.exp(-Delta_H) > np.random.random():
-       
-            self.accepted += 1
-        
+                self.accepted += 1
+            
+                self.U = U_new.copy()
+        else:
             self.U = U_new.copy()
         
         self.tries += 1
