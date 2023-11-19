@@ -135,7 +135,8 @@ class Chiral(object):
         
         exponential_matrix = Mat.exponential(epsilon * p, order, SU, order_N)
         
-        Unew = np.einsum('ijkl,ijlm->ijkm', exponential_matrix,U_0)
+        Unew =np.matmul(exponential_matrix, U_0)
+        #np.einsum('ijkl,ijlm->ijkm', exponential_matrix,U_0)
        
         for i in range(N_tau):
             
@@ -144,7 +145,8 @@ class Chiral(object):
             exponential_matrix = Mat.exponential(epsilon * p, order, SU, order_N)
             
             
-            Unew = np.einsum('ijkl,ijlm->ijkm', exponential_matrix, Unew)
+            Unew = np.matmul(exponential_matrix, Unew)
+            #np.einsum('ijkl,ijlm->ijkm', exponential_matrix, Unew)
         
         p += epsilon/2 * Chiral.dot_p(Unew, beta, SU, identity)
         
