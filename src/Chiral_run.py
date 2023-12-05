@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matrix_routines as Mat
 import Exceptions
 
-def calibration(beta, N, SU, order, N_order, N_tau_guess = 2):
+def calibration(beta, N, SU, order, N_order, N_tau_guess = 2, Hot_start = True):
     N_tau = N_tau_guess
     print('Calibration with beta = ' + str(beta) + " N = " +str(N)+ " SU = " + str(SU) )
     up = 0.95
@@ -15,7 +15,7 @@ def calibration(beta, N, SU, order, N_order, N_tau_guess = 2):
     for i in range(max_count):
         epsilon = 1/N_tau
         calibration_runs = 10**3
-        lat = Chiral(N, beta, 0,0,1,epsilon, N_tau, SU, order=order, order_N = N_order)
+        lat = Chiral(N, beta, 0,0,1,epsilon, N_tau, SU, order=order, order_N = N_order, Hot_start=Hot_start)
         lat.Calibration_Runs(calibration_runs, 1000)
         rate = lat.accepted/lat.tries
         d_rate = 0.75-rate
@@ -98,7 +98,7 @@ def measure_func_2D(beta, N, SU, order, N_order, N_measure,N_thermal, observable
     vals = results.swapaxes(0,1).swapaxes(1,2)
 
     np.save(file_name,vals)
-def measure_func_1D(beta, N, SU, order, N_order, N_measure,N_thermal, observable, observable_name):
+def measure_func_1D(beta, N, SU, order, N_order, N_measure,N_thermal, observable, observable_name, Hot_start = True):
     count = 0
     while True:
         try:
@@ -108,7 +108,7 @@ def measure_func_1D(beta, N, SU, order, N_order, N_measure,N_thermal, observable
                 calibration(beta,N,SU,order,N_order,N_tau)
             file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
             N_tau, epsilon = load_calibration(beta,N,SU,order, N_order)
-            model = Chiral(N,beta,N_measure,N_thermal,1,epsilon,N_tau,SU,1,order=order, order_N=N_order)
+            model = Chiral(N,beta,N_measure,N_thermal,1,epsilon,N_tau,SU,1,order=order, order_N=N_order,Hot_start=Hot_start)
             results,rate = model.generate_measurements(observable)
         except (Exceptions.ChiralExceptions):
             count+= 1
