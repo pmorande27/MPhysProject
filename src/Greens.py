@@ -1,5 +1,6 @@
 import numpy as np
 import Stats
+import math
 def Greens_mom(beta,N,SU,order,N_order,N_measure,N_thermal):
     observable_name = 'Greens'
     file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
@@ -48,9 +49,10 @@ def second_moment_correletion_length_two(beta,N,SU,order,N_order,N_measure,N_the
     values, error = np.load(file_name)
     result = 0
     sus = 0
-    for i in range(N):
-        for j in range(N):
-            result += (i**2+j**2)*values[i][j]
+    iss = np.arange(1-math.floor(N/2),math.floor(N/2)+1)
+    for i in iss:
+        for j in iss:
+            result += (i**2+j**2)*values[i%N][j%N]
             sus += values[i][j]
 
     return (result/(4*sus))**0.5,sus
@@ -66,8 +68,8 @@ def second_moment_correletion_length(beta,N,SU,order,N_order,N_measure,N_thermal
     #print(np.sum(Gf1))
     Gf0 = np.sum(np.array([[values[i,j] for j in range(N)] for i in range(N)]))
     """
-    print(error_s,error_2)
-    print(Gf[0,1]-Gf[0,1].real)
+    #print(error_s,error_2)
+    #print(Gf[0,1]-Gf[0,1].real)
     sq = (1/(4*np.sin(np.pi/N)*np.sin(np.pi/N))*(Gf[0,0]/Gf[0,1]-1))
     error_sq = ((1/(4*np.sin(np.pi/N)*np.sin(np.pi/N))*(1/Gf[0,1])*error_s)**2+(1/(4*np.sin(np.pi/N)*np.sin(np.pi/N))*(Gf[0,0]/Gf[0,1]**2))**2*error_2**2)**0.5
     error_f = np.sqrt((1/(2*sq**0.5)*error_sq)**2)
