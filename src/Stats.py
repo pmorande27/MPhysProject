@@ -81,7 +81,7 @@ class Stats(object):
     
 
 
-        return average, error
+        return average, error, integrated_autoccorelation
     @staticmethod
     def get_measurements(file_name, observable_name, observable):
         lattices = np.load(file_name)
