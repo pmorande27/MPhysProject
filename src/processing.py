@@ -86,3 +86,33 @@ def process_Generic_observable(beta,N,SU,order,N_order,N_measure,N_thermal, obse
     file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
     np.save(file_name,(value,error))
 
+def reprocess_Greens(beta,N,SU,order,N_order,N_measure,N_thermal, N_thermal_new):
+    observable_name = 'Greens'
+    file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    
+    data = np.load(file_name)
+    N_thermal_total = N_thermal + N_thermal_new
+    values = np.zeros((N,N))
+    errors = np.zeros((N,N))
+    for i in range(N):
+        for j in range(N):
+            values[i][j],errors[i][j] = Stats.Stats(np.array(data[i][j])[N_thermal_new:]).estimate()
+    N_measure = N_measure - N_thermal_new
+    file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal_total)+'.npy'
+    np.save(file_name,(values,errors)) 
+def reprocess_ww(beta,N,SU,order,N_order,N_measure,N_thermal, N_thermal_new):
+    observable_name = 'ww corr'
+    file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    
+    data = np.load(file_name)
+    N_thermal_total = N_thermal + N_thermal_new
+    values = np.zeros((N+1))
+    errors = np.zeros((N+1))
+    for i in range(N):
+        values[i],errors[i] = Stats.Stats(np.array(data[i])[N_thermal_new:]).estimate()
+    values[N],errors[N] = values[0],errors[0]
+    N_measure = N_measure - N_thermal_new
+    file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal_total)+'.npy'
+    np.save(file_name,(values,errors)) 
+
+    
