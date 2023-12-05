@@ -6,7 +6,7 @@ from Stats import Stats
 
 class Chiral(object):
     
-    def __init__(self, N, beta, N_measurment, N_thermal, N_sweeps, epsilon, N_tau, SU = 3, a = 1, order = 10, order_N = 10, renorm_freq = 1000) -> None:
+    def __init__(self, N, beta, N_measurment, N_thermal, N_sweeps, epsilon, N_tau, SU = 3, a = 1, order = 10, order_N = 10, renorm_freq = 1000, Hot_start = True) -> None:
         
         self.SU = SU
         
@@ -60,9 +60,11 @@ class Chiral(object):
         
         self.tries = 0
         ## set-up Hot Start
-        for i in range(10):
+        self.Hot_start = Hot_start
+        if Hot_start:
+            for i in range(10):
 
-            self.HMC(False)
+                self.HMC(False)
 
         self.accepted = 0
         
@@ -326,7 +328,3 @@ class Chiral(object):
         result = result/N**2"""
         return ww_cor
 
-
-        
-    
-        
