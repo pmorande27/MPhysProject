@@ -11,26 +11,46 @@ import Greens
 
 def main():
 
-    N = [18]
-    SU = 3
-    betas1 = [1.08]
-    order = 10
-    N_order = 10
-    N_tau = 60
-    N_thermal = 10**3
-    N_measure = 10**3
+    N = [16]
+    SU = 2
+    betas2 = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0,]
+    betas1 = [0.1]
+    order = 0
+    N_order = 0
+    #N_tau,e=Chiral_run.load_calibration(betas1[0],N[0],SU,10,10)
+    N_thermal = [10**4 for i in range(len(N))]
+    N_tau,_ = Chiral_run.load_calibration(betas1[0],N[0],SU,order,N_order,accel=False)
+    accel = True
+    N_measure = [10**4 for i in range(len(N))]
     for i,beta in enumerate(betas1):
-        #N_tau = Chiral_run.calibration(beta,N[i],SU,order,N_order,N_tau)
-        Chiral_run.measure_func_1D(beta,N[i],SU,order,N_order,N_measure,N_thermal,lambda U:Chiral.Measure_G_diags(U,SU),"Greens diags")
+        #N_tau = Chiral_run.calibration(beta,N[0],SU,order,N_order,N_tau,True,accel)
+        Chiral_run.measure_func_1D(beta,N[0],SU,order,N_order,N_measure[0],N_thermal[0],lambda U:Chiral.Measure_ww_corr(U,SU),"ww corr",True,accel)
+        processing.process_ww_corr(betas1[i],N[i],SU,order,N_order,N_measure[i],N_thermal[i],accel=accel)
+
+        #Chiral_run.measure(beta,N[0],SU,order,N_order,N_measure[0],N_thermal[0],lambda U: -Chiral.action(U,beta,2)/(2*SU*N[0]**2*beta),"Action",True,accel)
+        #processing.process_ww_corr(betas1[i],N[i],SU,order,N_order,N_measure[i],N_thermal[i])
+        #plotting.Greens_mom_2(betas1[i],N[i],SU,order,N_order,N_measure[i],N_thermal[i])
+        #processing.reprocess_ww(betas1[i],N[i],SU,order,N_order,N_measure[i],N_thermal[i],5*N_thermal[i])
+        #plotting.correlation_length_manual_fit(betas1[i],N[i],SU,order,N_order,N_measure[i]-5*N_thermal[i],6*N_thermal[i])
+        #plotting.correlation_length_manual_fit(betas1[i],N[i],SU,order,N_order,N_measure[i],N_thermal[i])
+        #plotting.mass_plot(betas1[i],N[i],SU,order,N_order,N_measure[i],N_thermal[i],1,7,accel=accel)
+        #plotting.correlation_length_automatic_fit(betas1[i],N[i],SU,order,N_order,N_measure[i],N_thermal[i],lower=0)
+        plotting.correlation_length_manual_fit(betas1[i],N[i],SU,order,N_order,N_measure[i],N_thermal[i],0,8,accel=accel)
+        plotting.correlation_length_automatic_fit(betas1[i],N[i],SU,order,N_order,N_measure[i],N_thermal[i],lower=0,accel=accel)
+        #plotting.correlation_length_automatic_fit(betas1[i],N[i],SU,order,N_order,N_measure[i]-5*N_thermal[i],6*N_thermal[i])
+        #Chiral_run.measure_func_2D(beta,N[i],SU,order,N_order,N_measure[i],N_thermal[i],lambda U:Chiral.Measure_G(U,SU),"Greens")
+        #processing.process_Greens(betas1[i],N[i],SU,order,N_order,N_measure[i],N_thermal[i])
+        #plotting.mass_plot(betas1[i],N[i],SU,order,N_order,N_measure[i],N_thermal[i])
+        #print(Greens.second_moment_correletion_length_two(betas1[i],N[i],SU,order,N_order,N_measure[i],N_thermal[i]))
+
+        #print(Greens.second_moment_correletion_length(betas1[i],N[i],SU,order,N_order,N_measure[i],N_thermal[i]))
+        #processing.process_Action(betas1[i],N[0],SU,order,N_order,N_measure[0],N_thermal[0],accel=accel)
         pass
-
-    model_params = {'n_length': N[0],'su_parameter': SU, 'order': order, 'n_measure': N_measure, 'n_thermal': N_thermal, 'n_order':N_order }
-    #[processing.process_Action(betas1[i],N[0],SU,order,N_order,N_measure,N_thermal) for i in range(len(betas1))]
-    #plotting.plot_e_desinty(betas=betas1,model_params=model_params)
-    processing.process_G_diags(betas1[0],N[0],SU,order,N_order,N_measure,N_thermal)
-    #Greens.Greens_mom(betas1[0],N[0],SU,order,N_order,N_measure,N_thermal)
-    plotting.plot_Greens_diags(betas1[0],N[0],SU,order,N_order,N_measure,N_thermal)
-
-  
+    #model_params = {'n_length':N[0],'su_parameter':SU,'order':order,'n_order':N_order,'n_measure':N_measure[0],'n_thermal':N_thermal[0]}
+    #plotting.plot_e_desinty(betas2,model_params,accel=accel)
+    #iats, beta = processing.sus_iat_process(betas1,16,SU,order,N_order,10000,1000)
+    #plt.plot(beta,iats)
+    #plt.show()
 main()
+
 

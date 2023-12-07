@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matrix_routines as Mat
 import Exceptions
 
-def calibration(beta, N, SU, order, N_order, N_tau_guess = 2, Hot_start = True):
+def calibration(beta, N, SU, order, N_order, N_tau_guess = 2, Hot_start = True,accel =False):
     N_tau = N_tau_guess
     print('Calibration with beta = ' + str(beta) + " N = " +str(N)+ " SU = " + str(SU) )
     up = 0.95
@@ -15,7 +15,7 @@ def calibration(beta, N, SU, order, N_order, N_tau_guess = 2, Hot_start = True):
     for i in range(max_count):
         epsilon = 1/N_tau
         calibration_runs = 10**3
-        lat = Chiral(N, beta, 0,0,1,epsilon, N_tau, SU, order=order, order_N = N_order, Hot_start=Hot_start)
+        lat = Chiral(N, beta, 0,0,1,epsilon, N_tau, SU, order=order, order_N = N_order, Hot_start=Hot_start,accel=accel)
         lat.Calibration_Runs(calibration_runs, 1000)
         rate = lat.accepted/lat.tries
         d_rate = 0.75-rate
@@ -25,7 +25,10 @@ def calibration(beta, N, SU, order, N_order, N_tau_guess = 2, Hot_start = True):
 
         new_N = int(np.rint(N_tau*(1+d_rate)))
         if rate <=up and rate >= low:
-            file_name = "ChiralParams/Chiral Calibration parameters beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+ " Order = " + str(order) + " N Order = " + str(N_order)
+            if accel == False:
+                file_name = "ChiralParams/Chiral Calibration parameters beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+ " Order = " + str(order) + " N Order = " + str(N_order)
+            else:
+                file_name = "ChiralParams/Chiral Calibration parameters beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+ " Order = " + str(order) + " N Order = " + str(N_order) + " Accel"
             np.save(file_name, [N_tau,1/N_tau])
             print("-----------------")
             print(rate, N_tau)
@@ -46,12 +49,17 @@ def calibration(beta, N, SU, order, N_order, N_tau_guess = 2, Hot_start = True):
     d_rate_2 = lookup(d_rate,N_tau,results)
     rate = (d_rate_2+up)*100
     print(rate,N_tau)
-    file_name = "ChiralParams/Chiral Calibration parameters beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+ " Order = " + str(order) + " N Order = " + str(N_order)
-
+    if accel == False:
+        file_name = "ChiralParams/Chiral Calibration parameters beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+ " Order = " + str(order) + " N Order = " + str(N_order)
+    else:
+        file_name = "ChiralParams/Chiral Calibration parameters beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+ " Order = " + str(order) + " N Order = " + str(N_order) + " Accel"
     np.save(file_name, [N_tau,1/N_tau])
     return N_tau
-def load_calibration(beta, N, SU, order, N_order):
-    file_name = "ChiralParams/Chiral Calibration parameters beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+ " Order = " + str(order) + " N Order = " + str(N_order) +'.npy'
+def load_calibration(beta, N, SU, order, N_order,accel = False):
+    if accel == False:
+        file_name = "ChiralParams/Chiral Calibration parameters beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+ " Order = " + str(order) + " N Order = " + str(N_order)+'.npy'
+    else:
+        file_name = "ChiralParams/Chiral Calibration parameters beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+ " Order = " + str(order) + " N Order = " + str(N_order) + " Accel.npy"
     values = np.load(    file_name)
     return int(values[0]),values[1]
 def lookup(d_rate,N_tau,results):
@@ -59,17 +67,20 @@ def lookup(d_rate,N_tau,results):
         if abs(x) == d_rate and y == N_tau:
             return x
         
-def measure(beta, N, SU, order, N_order, N_measure,N_thermal, observable, observable_name):
+def measure(beta, N, SU, order, N_order, N_measure,N_thermal, observable, observable_name, Hot_start = True,accel =False):
     count = 0
     while True:
         try:
             if count == 10:    
                 count = 0
                 print('Recalibration')
-                calibration(beta,N,SU,order,N_order,N_tau)
-            file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
-            N_tau, epsilon = load_calibration(beta,N,SU,order, N_order)
-            model = Chiral(N,beta,N_measure,N_thermal,1,epsilon,N_tau,SU,1,order=order, order_N=N_order)
+                calibration(beta,N,SU,order,N_order,N_tau,Hot_start=Hot_start,accel=accel)
+            if accel == False:
+                file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+            else:
+                file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+" Accel.npy"
+            N_tau, epsilon = load_calibration(beta,N,SU,order, N_order,accel=accel)
+            model = Chiral(N,beta,N_measure,N_thermal,1,epsilon,N_tau,SU,1,order=order, order_N=N_order, Hot_start=Hot_start,accel=accel)
             results,rate = model.generate_measurements(observable)
         except (Exceptions.ChiralExceptions):
             count+= 1
@@ -78,17 +89,20 @@ def measure(beta, N, SU, order, N_order, N_measure,N_thermal, observable, observ
     #print(Stats(vals).estimate())
     np.save(file_name,results)
 
-def measure_func_2D(beta, N, SU, order, N_order, N_measure,N_thermal, observable, observable_name):
+def measure_func_2D(beta, N, SU, order, N_order, N_measure,N_thermal, observable, observable_name,Hot_start = True,accel =False):
     count = 0
     while True:
         try:
             if count == 10:    
                 count = 0
                 print('Recalibration')
-                calibration(beta,N,SU,order,N_order,N_tau)
-            file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
-            N_tau, epsilon = load_calibration(beta,N,SU,order, N_order)
-            model = Chiral(N,beta,N_measure,N_thermal,1,epsilon,N_tau,SU,1,order=order, order_N=N_order)
+                calibration(beta,N,SU,order,N_order,N_tau,Hot_start=Hot_start,accel=accel)
+            if accel == False:
+                file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+            else:
+                file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+" Accel.npy"
+            N_tau, epsilon = load_calibration(beta,N,SU,order, N_order,accel=accel)
+            model = Chiral(N,beta,N_measure,N_thermal,1,epsilon,N_tau,SU,1,order=order, order_N=N_order,Hot_start=Hot_start,accel=accel)
             results,rate = model.generate_measurements(observable)
         except (Exceptions.ChiralExceptions):
             count+= 1
@@ -98,17 +112,20 @@ def measure_func_2D(beta, N, SU, order, N_order, N_measure,N_thermal, observable
     vals = results.swapaxes(0,1).swapaxes(1,2)
 
     np.save(file_name,vals)
-def measure_func_1D(beta, N, SU, order, N_order, N_measure,N_thermal, observable, observable_name, Hot_start = True):
+def measure_func_1D(beta, N, SU, order, N_order, N_measure,N_thermal, observable, observable_name, Hot_start = True,accel =False):
     count = 0
     while True:
         try:
             if count == 10:    
                 count = 0
                 print('Recalibration')
-                calibration(beta,N,SU,order,N_order,N_tau)
-            file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
-            N_tau, epsilon = load_calibration(beta,N,SU,order, N_order)
-            model = Chiral(N,beta,N_measure,N_thermal,1,epsilon,N_tau,SU,1,order=order, order_N=N_order,Hot_start=Hot_start)
+                calibration(beta,N,SU,order,N_order,N_tau,Hot_start=Hot_start,accel=accel)
+            if accel == False:
+                file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+            else:
+                file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+" Accel.npy"
+            N_tau, epsilon = load_calibration(beta,N,SU,order, N_order,accel=accel)
+            model = Chiral(N,beta,N_measure,N_thermal,1,epsilon,N_tau,SU,1,order=order, order_N=N_order,Hot_start=Hot_start,accel=accel)
             results,rate = model.generate_measurements(observable)
         except (Exceptions.ChiralExceptions):
             count+= 1
@@ -117,17 +134,20 @@ def measure_func_1D(beta, N, SU, order, N_order, N_measure,N_thermal, observable
     results = np.array(results)
     vals = results.swapaxes(0,1)
     np.save(file_name,vals)
-def measure_func_4D(beta, N, SU, order, N_order, N_measure,N_thermal, observable, observable_name):
+def measure_func_4D(beta, N, SU, order, N_order, N_measure,N_thermal, observable, observable_name, Hot_start = True,accel =False):
     count = 0
     while True:
         try:
             if count == 10:    
                 count = 0
                 print('Recalibration')
-                calibration(beta,N,SU,order,N_order,N_tau)
-            file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
-            N_tau, epsilon = load_calibration(beta,N,SU,order, N_order)
-            model = Chiral(N,beta,N_measure,N_thermal,1,epsilon,N_tau,SU,1,order=order, order_N=N_order)
+                calibration(beta,N,SU,order,N_order,N_tau,Hot_start=Hot_start,accel=accel)
+            if accel == False:
+                file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+            else:
+                file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+" Accel.npy"
+            N_tau, epsilon = load_calibration(beta,N,SU,order, N_order,accel=accel)
+            model = Chiral(N,beta,N_measure,N_thermal,1,epsilon,N_tau,SU,1,order=order, order_N=N_order,Hot_start=Hot_start,accel=accel)
             results,rate = model.generate_measurements(observable)
         except (Exceptions.ChiralExceptions):
             count+= 1
@@ -139,23 +159,3 @@ def measure_func_4D(beta, N, SU, order, N_order, N_measure,N_thermal, observable
 
     np.save(file_name,vals)
 
-def measure_susceptibility(beta,N,SU):
-    file_name = "ChiralResults/Susceptibility/Susceptibility 2 beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+'.npy'
-    N_tau, epsilon = load_calibration(beta,N,SU)
-    model = Chiral(N,beta,10**3,1000,1,epsilon,N_tau,2,1,order=10)
-        
-    results = model.generate_measurements(lambda U:np.einsum('ijkl,ablk->',U,Mat.dagger(U)).real/(2*N**2))
-    np.save(file_name,results)
-
-
-def estimate_2D_func(beta, N, SU, order, N_order, N_measure,N_thermal, observable, observable_name):
-    file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
-    vals = np.load(file_name)
-    results = np.zeros((N,N))
-    err = np.zeros((N,N))
-    for i in range(N):
-        for j in range(N):
-            a = Stats(vals[i,j]).estimate()
-            results[i,j] = a[0]
-            err[i,j] = a[1]
-    return results

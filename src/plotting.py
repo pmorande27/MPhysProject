@@ -5,10 +5,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from Stats import Stats
 from scipy.optimize import curve_fit
-def mass_plot(beta,N,SU,order,N_order,N_measure,N_thermal,lower,upper):
+def mass_plot(beta,N,SU,order,N_order,N_measure,N_thermal,lower,upper,accel = False):
     observable_name = 'ww corr'
-    file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
-    ww_cor, ww_cor_err = np.load(file_name)
+    if accel == False:
+        file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    else:
+        file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+" Accel.npy"
     ww_cor, ww_cor_err = np.load(file_name)
     ww_cor, ww_cor_err = ww_cor/ww_cor[0], ww_cor_err/ww_cor[0]
     xdata = np.arange(N+1)
@@ -58,13 +60,19 @@ def mass_plot(beta,N,SU,order,N_order,N_measure,N_thermal,lower,upper):
     plt.ylabel('m')
     plt.xlabel('t')
     plt.xlim(0,21+1)
-    file_name = "ChiralResults/Processed/Plots/Mass Plot"+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.svg'
+    if accel == False:
 
+        file_name = "ChiralResults/Processed/Plots/Mass Plot"+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.svg'
+    else:
+        file_name = "ChiralResults/Processed/Plots/Mass Plot"+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+" Accel.svg"
     plt.savefig(file_name)
     plt.show()
-def correlation_length_automatic_fit(beta,N,SU,order,N_order,N_measure,N_thermal,lower):
+def correlation_length_automatic_fit(beta,N,SU,order,N_order,N_measure,N_thermal,lower,accel = False):
     observable_name = 'ww corr'
-    file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    if accel == False:
+        file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    else:
+        file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+" Accel.npy"
     ww_cor, ww_cor_err = np.load(file_name)
     ww_cor, ww_cor_err = ww_cor/ww_cor[0], np.sqrt((ww_cor_err/ww_cor[0])**2 + (ww_cor/ww_cor[0]**2 * ww_cor_err[0])**2)
     xdata = np.arange(N+1)
@@ -76,7 +84,7 @@ def correlation_length_automatic_fit(beta,N,SU,order,N_order,N_measure,N_thermal
 
     # store processed correlation function data
     def model(d,xi):
-        return (np.cosh((d-N_2)/xi)-1 ) / (np.cosh(N_2/xi)-1 )
+        return (np.cosh((d-N_2)/xi)) / (np.cosh(N_2/xi) )
     cor_length,cor_length_err,reduced_chi2 = np.zeros(N_2),np.zeros(N_2),np.zeros(N_2)
     for i,upper_fit in enumerate(range(lower,N_2)):
     # perform the fit  
@@ -112,14 +120,21 @@ def correlation_length_automatic_fit(beta,N,SU,order,N_order,N_measure,N_thermal
     plt.title( "beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal),fontsize = 5)
     plt.ylabel('wall wall correlation $C_{ww}(d)$')
     plt.legend(prop={'size':12}, frameon=True, loc='upper right')
-    file_name = "ChiralResults/Processed/Plots/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.svg'
+    if accel == False:
 
+        file_name = "ChiralResults/Processed/Plots/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.svg'
+    else:
+        file_name = "ChiralResults/Processed/Plots/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+' Accel.svg'
+    
     plt.savefig(file_name)
     plt.show()
 
-def correlation_length_manual_fit(beta,N,SU,order,N_order,N_measure,N_thermal,lower,upper):
+def correlation_length_manual_fit(beta,N,SU,order,N_order,N_measure,N_thermal,lower,upper,accel = False):
     observable_name = 'ww corr'
-    file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    if accel == False:
+        file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    else:
+        file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+" Accel.npy"
     ww_cor, ww_cor_err = np.load(file_name)
     ww_cor, ww_cor_err = ww_cor/ww_cor[0], ww_cor_err/ww_cor[0]
     xdata = np.arange(N+1)
@@ -157,12 +172,15 @@ def correlation_length_manual_fit(beta,N,SU,order,N_order,N_measure,N_thermal,lo
     plt.title( "beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal),fontsize = 5)
     plt.ylabel('wall wall correlation $C_{ww}(d)$')
     plt.legend(prop={'size':12}, frameon=True, loc='upper right')
-    file_name = "ChiralResults/Processed/Plots/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+' manual.svg'
+    if accel == False:
 
+        file_name = "ChiralResults/Processed/Plots/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+' manual.svg'
+    else:
+        file_name = "ChiralResults/Processed/Plots/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+' manual Accel.svg'
     plt.savefig(file_name)
     plt.show()
 
-def plot_e_desinty(betas, model_params):
+def plot_e_desinty(betas, model_params,accel = False):
     """
     Function used to plot the Energy density for different
     parameters such as the lenght of the lattice or the group
@@ -180,27 +198,46 @@ def plot_e_desinty(betas, model_params):
     for i, beta in enumerate(betas):
 
         if model_params["su_parameter"] == 2:
+            if accel == False:
 
-            file_name = "ChiralResults/Processed/Action/Action beta = " + str(beta) \
-                        + " N = " + str(model_params["n_length"])
+                file_name = "ChiralResults/Processed/Action/Action beta = " + str(beta) \
+                            + " N = " + str(model_params["n_length"])
 
-            file_name += " SU = " + str(model_params["su_parameter"]) + \
-                         " Order = " + str(0) + " N Order = " + str(0)
+                file_name += " SU = " + str(model_params["su_parameter"]) + \
+                            " Order = " + str(0) + " N Order = " + str(0)
 
-            file_name += " N measurements = " + str(model_params["n_measure"]) \
-                        + " N Thermal = "
+                file_name += " N measurements = " + str(model_params["n_measure"]) \
+                            + " N Thermal = "
 
-            file_name += str(model_params["n_thermal"])+'.npy'
+                file_name += str(model_params["n_thermal"])+'.npy'
+            else:
+                file_name = "ChiralResults/Processed/Action/Action beta = " + str(beta) \
+                            + " N = " + str(model_params["n_length"])
 
+                file_name += " SU = " + str(model_params["su_parameter"]) + \
+                            " Order = " + str(0) + " N Order = " + str(0)
+
+                file_name += " N measurements = " + str(model_params["n_measure"]) \
+                            + " N Thermal = "
+
+                file_name += str(model_params["n_thermal"])+" Accel.npy"
             result[i],error[i] = np.load(file_name)
 
+        if accel == False:
 
-        file_name = "ChiralResults/Processed/Action/Action beta = " + \
+            file_name = "ChiralResults/Processed/Action/Action beta = " + \
                     str(betas[i]) + " N = " + str(model_params["n_length"]) + \
                      " SU = " + str(model_params["su_parameter"])+" Order = " \
                     + str(model_params["order"])+" N Order = " + str(model_params['n_order']) \
                     + " N measurements = " + str(model_params["n_measure"]) + " N Thermal = " \
                     + str(model_params["n_thermal"]) + '.npy'
+        else:
+            file_name = "ChiralResults/Processed/Action/Action beta = " + \
+                    str(betas[i]) + " N = " + str(model_params["n_length"]) + \
+                     " SU = " + str(model_params["su_parameter"])+" Order = " \
+                    + str(model_params["order"])+" N Order = " + str(model_params['n_order']) \
+                    + " N measurements = " + str(model_params["n_measure"]) + " N Thermal = " \
+                    + str(model_params["n_thermal"]) + " Accel.npy"
 
         result_2[i], error_2[i] = np.load(file_name)
 
@@ -256,59 +293,20 @@ def plot_e_desinty(betas, model_params):
     plt.ylabel('$e$')
 
     axis.spines[['right', 'top']].set_visible(False)
-
-    plt.savefig('ChiralResults/Processed/Plots/Energy_density_SU_' + str(model_params["su_parameter"]) \
+    if accel == False:
+        plt.savefig('ChiralResults/Processed/Plots/Energy_density_SU_' + str(model_params["su_parameter"]) \
                 + "_N_" + str(model_params["n_length"]) + 'Order_' \
                 + str(model_params["order"]) + 'N_order_' + str(model_params['n_order']) + '.svg')
+    else:
+        plt.savefig('ChiralResults/Processed/Plots/Energy_density_SU_' + str(model_params["su_parameter"]) \
+                + "_N_" + str(model_params["n_length"]) + 'Order_' \
+                + str(model_params["order"]) + 'N_order_' + str(model_params['n_order']) + ' Accel.svg')
 
     plt.show()
 
-def plot_sus(betas, n_length, su_parameter):
-    """
-    Function used to plot the Susceptibility for different
-    parameters such as the lenght of the lattice or the group
-    used
-    """
 
 
-    result_2 = np.zeros(len(betas))
-
-    error_2 = np.zeros(len(betas))
-
-    for i, beta in enumerate(betas):
-
-        file_name_2 = "ChiralResults/Processed/Susceptibility/Susceptibility 2" + \
-            " beta = " + str(beta) +" N = "+str(n_length)+ " SU = " + str(su_parameter)+".npy"
-
-        #values = np.load(file_name)
-
-        values_2 = np.load(file_name_2)
-
-        #result[i],error[i] = Stats(values).estimate()
-
-        result_2[i], error_2[i] = values_2
-
-    axis = plt.subplot(111)
-
-    #ax.errorbar(x=betas,y=result,yerr= error,fmt="xk",label = 'Data')
-
-    axis.errorbar(x=betas, y=result_2, yerr=error_2, fmt="xg", label='Data with Taylor')
-
-    plt.xlim(0, 2.6)
-
-    plt.legend()
-
-    plt.xlabel('$\\beta$')
-
-    plt.ylabel('$X$')
-
-    axis.spines[['right', 'top']].set_visible(False)
-
-    plt.savefig('ChiralResults/Processed/Plots/Susceptibility.svg')
-
-    plt.show()
-
-def plot_generic_data_beta(betas, model_params, observable_name, symbol):
+def plot_generic_data_beta(betas, model_params, observable_name, symbol, accel = False):
     """
     Function used to plot generic data of an observable
     against beta for different parameters such as
@@ -320,15 +318,25 @@ def plot_generic_data_beta(betas, model_params, observable_name, symbol):
     err = [0 for j in range(len(betas))]
 
     for i, beta in enumerate(betas):
+        if accel == False:
 
-        file_name = "ChiralResults/Processed" + observable_name + "/" + \
-                    observable_name + " beta = " + str(beta) + " N = " + \
-                    str(model_params["n_length"]) + \
-                    " SU = " + str(model_params["su_parameter"]) + " Order = " \
-                    + str(model_params["order"]) + " N Order = " \
-                    + str(model_params["n_order"]) + " N measurements = " + \
-                    str(model_params["n_measure"]) + \
-                    " N Thermal = " + str(model_params["n_thermal"]) + '.npy'
+            file_name = "ChiralResults/Processed" + observable_name + "/" + \
+                        observable_name + " beta = " + str(beta) + " N = " + \
+                        str(model_params["n_length"]) + \
+                        " SU = " + str(model_params["su_parameter"]) + " Order = " \
+                        + str(model_params["order"]) + " N Order = " \
+                        + str(model_params["n_order"]) + " N measurements = " + \
+                        str(model_params["n_measure"]) + \
+                        " N Thermal = " + str(model_params["n_thermal"]) + '.npy'
+        else:
+            file_name = "ChiralResults/Processed" + observable_name + "/" + \
+                        observable_name + " beta = " + str(beta) + " N = " + \
+                        str(model_params["n_length"]) + \
+                        " SU = " + str(model_params["su_parameter"]) + " Order = " \
+                        + str(model_params["order"]) + " N Order = " \
+                        + str(model_params["n_order"]) + " N measurements = " + \
+                        str(model_params["n_measure"]) + \
+                        " N Thermal = " + str(model_params["n_thermal"]) + ' Accel.npy'
 
         result[i], err[i] = np.load(file_name)
 
@@ -415,9 +423,13 @@ def weak_coupling(beta):
 
     return 1- 3/(8 * beta) * (1 + 1/(16 * beta) + (1/64 + 3/16 * q_one + 1/8 * q_one) * 1/beta**2)
 
-def plot_Greens_0_mom(beta,N,SU,order,N_order,N_measure,N_thermal):
+def plot_Greens_0_mom(beta,N,SU,order,N_order,N_measure,N_thermal,accel = False):
     observable_name = 'Greens 0 mom'
-    file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    if accel == False:
+        file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    else:
+        file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+" Accel.npy"
+    
     ww_cor,ww_cor_err = np.load(file_name)
     ww_cor, ww_cor_err = ww_cor/ww_cor[0], ww_cor_err/ww_cor[0]
     xdata = np.arange(N+1)
@@ -451,9 +463,13 @@ def plot_Greens_0_mom(beta,N,SU,order,N_order,N_measure,N_thermal):
     plt.ylabel('wall wall correlation $C_{ww}(d)$')
     plt.legend(prop={'size':12}, frameon=True, loc='upper right')
     plt.show()
-def plot_Greens_diags(beta,N,SU,order,N_order,N_measure,N_thermal):
+def plot_Greens_diags(beta,N,SU,order,N_order,N_measure,N_thermal,accel = False):
     observable_name = 'Greens diags'
-    file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    if accel == False:
+        file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    else:
+        file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+" Accel.npy"
+    
     values,errors = np.load(file_name)
     ww_cor,ww_cor_err = np.load(file_name)
     ww_cor, ww_cor_err = ww_cor/ww_cor[0], ww_cor_err/ww_cor[0]
@@ -489,9 +505,13 @@ def plot_Greens_diags(beta,N,SU,order,N_order,N_measure,N_thermal):
     plt.ylabel('wall wall correlation $C_{ww}(d)$')
     plt.legend(prop={'size':12}, frameon=True, loc='upper right')
     plt.show()
-def plot_Greens_diags2(beta,N,SU,order,N_order,N_measure,N_thermal):
+def plot_Greens_diags2(beta,N,SU,order,N_order,N_measure,N_thermal,accel = False):
     observable_name = 'Greens Diags'
-    file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    if accel == False:
+        file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    else:
+        file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+" Accel.npy"
+    
     values,errors = np.load(file_name)
     xdata = np.arange(N-1)
     results =1/ np.abs(np.sqrt(2)*np.array([np.log(values[i+1])-np.log(values[i]) for i in range(N-1)]))

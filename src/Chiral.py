@@ -6,11 +6,12 @@ from Stats import Stats
 
 class Chiral(object):
     
-    def __init__(self, N, beta, N_measurment, N_thermal, N_sweeps, epsilon, N_tau, SU = 3, a = 1, order = 10, order_N = 10, renorm_freq = 1000, Hot_start = True) -> None:
+    def __init__(self, N, beta, N_measurment, N_thermal, N_sweeps, epsilon, N_tau, SU = 3, a = 1, order = 10, order_N = 10, renorm_freq = 1000, Hot_start = True, accel = False) -> None:
         
         self.SU = SU
         
         self.a = a
+        self.accel = accel
         
         self.order_N = order_N
         
@@ -21,6 +22,7 @@ class Chiral(object):
         self.N_tau = N_tau
         
         self.N_sweeps = N_sweeps
+        self.mass = 0.1
         
         if SU == 3 or SU == 2 or SU==4:
         
@@ -31,7 +33,13 @@ class Chiral(object):
             raise ValueError('Not considered value for SU')
         
         self.N = N
-        
+        ks = np.arange(0, self.N) # lattice sites in Fourier space along one direction
+        A = np.zeros((self.N,self.N)) # inverse kernel computed at every site in Fourier space
+        for k in range(self.N):
+            for k_ in range(k,self.N):
+                A[k,k_] = ( 4*np.sin(np.pi*ks[k]/self.N)**2 + 4*np.sin(np.pi*ks[k_]/self.N)**2 + self.mass**2)**(-1)   
+                A[k_,k] = A[k,k_] # exploit symmetry of kernel under exchange of directions 
+        self.A = A
         self.N_measurement = N_measurment
         
         self.N_thermal = N_thermal
@@ -180,6 +188,106 @@ class Chiral(object):
         
         self.tries += 1
 
+    def Sample_FA_momentum(self):
+        pi_F = np.zeros((self.N, self.N, self.SU**2-1), dtype=complex)
+
+        PI_std = np.sqrt(self.N**2 / self.A) 
+        STD = np.repeat(PI_std[:,:,None], repeats=self.SU**2-1, axis=2) # standard deviation is identical for components at same position
+        PI = np.random.normal(loc=0, scale=STD) #  (N,N,self.SU**2-1) as returned array matches shape of STD
+
+        # assign special modes for which FT exponential becomes +/-1. To get real pi in real space, the modes must be real themselves.
+        N_2 = int(self.N/2)
+        # two spacial indices
+        pi_F[0,0] = PI[0,0]
+        pi_F[0,N_2] = PI[0,N_2]
+        pi_F[N_2,0] = PI[N_2,0]
+        pi_F[N_2,N_2] = PI[N_2,N_2]
+
+        # one special index
+        pi_F[0,1:N_2] = 1/np.sqrt(2) * (PI[0,1:N_2] + 1j * PI[0,N_2+1:][::-1])
+        pi_F[0,N_2+1:] = np.conj(pi_F[0,1:N_2][::-1]) # imposing hermitean symmetry
+
+        pi_F[N_2,1:N_2] = 1/np.sqrt(2) * (PI[N_2,1:N_2] + 1j * PI[N_2,N_2+1:][::-1])
+        pi_F[N_2,N_2+1:] = np.conj(pi_F[N_2,1:N_2][::-1])
+
+        pi_F[1:N_2,0] = 1/np.sqrt(2) * (PI[1:N_2,0] + 1j * PI[N_2+1:,0][::-1])
+        pi_F[N_2+1:,0] = np.conj(pi_F[1:N_2,0][::-1])
+
+        pi_F[1:N_2,N_2] = 1/np.sqrt(2) * (PI[1:N_2,N_2] + 1j * PI[N_2+1:,N_2][::-1])
+        pi_F[N_2+1:,N_2] = np.conj(pi_F[1:N_2,N_2][::-1])
+
+        # no special index
+        pi_F[1:N_2,1:N_2] = 1/np.sqrt(2) * (PI[1:N_2,1:N_2] + 1j * PI[N_2+1:,N_2+1:][::-1,::-1])
+        pi_F[N_2+1:,N_2+1:] = np.conj(pi_F[1:N_2,1:N_2][::-1,::-1]) # imposing hermitean symmetry
+   
+        pi_F[1:N_2,N_2+1:] = 1/np.sqrt(2) * (PI[1:N_2,N_2+1:] + 1j * PI[N_2+1:,1:N_2][::-1,::-1])
+        pi_F[N_2+1:,1:N_2] = np.conj(pi_F[1:N_2,N_2+1:][::-1,::-1])
+
+        # pi is real by construction
+        pi = np.real(np.fft.ifft2(pi_F, axes=(0,1)))
+
+        return pi
+    @staticmethod
+    def Hamiltonian_FA(p,U,beta,c,A):
+        N = len(U)
+        p1 = Mat.dagger(np.fft.fft2( p,axes=(0,1)))
+        p2  = np.einsum('ij,ijlk->ijlk', A, np.fft.fft2(p,axes=(0,1)))
+
+        return 1/(2 *(c*N**2)) * np.einsum('ijkl,ijlk->', p1, p2).real+ Chiral.action(U, beta,c)
+    @staticmethod
+    def molecular_dynamics_FA(p_0, U_0, beta, epsilon, N_tau, SU, order, identity, order_N,A):
+        p = p_0 + epsilon/2 * Chiral.dot_p(U_0,beta, SU, identity)
+        def p_f(A,ps):
+            mult = np.einsum('ij,ijlk->ijlk',A, np.fft.fft2(ps,axes=(0,1)))
+            return np.fft.ifft2(mult,axes=(0,1))
+        exponential_matrix = Mat.exponential(epsilon * p_f(A,p), order, SU, order_N)
+        
+        Unew =np.matmul(exponential_matrix, U_0)
+        #np.einsum('ijkl,ijlm->ijkm', exponential_matrix,U_0)
+       
+        for i in range(N_tau):
+            
+            p += epsilon * Chiral.dot_p(Unew, beta, SU, identity)
+            
+            exponential_matrix = Mat.exponential(epsilon * p_f(A,p), order, SU, order_N)
+            
+            
+            Unew = np.matmul(exponential_matrix, Unew)
+            #np.einsum('ijkl,ijlm->ijkm', exponential_matrix, Unew)
+        
+        p += epsilon/2 * Chiral.dot_p(Unew, beta, SU, identity)
+        
+        return p, Unew
+
+    def HMC_FA(self, flag = True):
+        ## Sampling
+        p_i = self.Sample_FA_momentum()
+        p = np.einsum('abi,ikl->abkl', p_i, self.generators)
+
+        ## Obtain Hamiltonian
+        H = Chiral.Hamiltonian_FA(p, self.U, self.beta, self.c,self.A)
+
+        ## Molecular Dynamics
+
+        p_new, U_new = Chiral.molecular_dynamics_FA(p.copy(), self.U.copy(), self.beta, self.epsilon, self.N_tau, self.SU, self.order, self.identity, self.order_N,self.A)
+        p_new = -p_new
+        H_new = Chiral.Hamiltonian_FA(p_new, U_new, self.beta, self.c,self.A)
+        
+        Delta_H = H_new - H
+        
+        self.delta_H = Delta_H
+        if flag:
+            if Delta_H <0 or np.exp(-Delta_H) > np.random.random():
+        
+                self.accepted += 1
+            
+                self.U = U_new.copy()
+        else:
+            self.U = U_new.copy()
+        
+        self.tries += 1
+
+
     def thermalize(self):
         """
         Runs the HMC alogrithm for N_thermal times
@@ -187,7 +295,10 @@ class Chiral(object):
         with alive_bar(self.N_thermal) as bar:
         
             for i in range(self.N_thermal):
-                self.HMC()
+                if self.accel:
+                    self.HMC_FA()
+                else:
+                    self.HMC()
                 bar()
                 
 
@@ -209,7 +320,10 @@ class Chiral(object):
 
                 for j in range(self.N_sweeps):
 
-                    self.HMC()
+                    if self.accel:
+                        self.HMC_FA()
+                    else:
+                        self.HMC()
                 
                 self.DH[i]  = self.delta_H 
                 
@@ -224,6 +338,8 @@ class Chiral(object):
             rate = self.accepted/self.tries
             
             print(rate)
+            print(np.average(np.exp(-self.DH)))
+
   
         print('------------------------------')
         
@@ -239,7 +355,10 @@ class Chiral(object):
             
             for i in range(N_thermal):
        
-                self.HMC()
+                if self.accel:
+                        self.HMC_FA()
+                else:
+                    self.HMC()
            
                 bar()
                 
@@ -250,7 +369,10 @@ class Chiral(object):
             
             for i in range(N_runs):
                 
-                self.HMC()
+                if self.accel:
+                        self.HMC_FA()
+                else:
+                    self.HMC()
                 
                 DH[i] = self.delta_H
                 
