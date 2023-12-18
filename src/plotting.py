@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from Stats import Stats
 from scipy.optimize import curve_fit
-def mass_plot(beta,N,SU,order,N_order,N_measure,N_thermal,lower,upper,accel = False):
+def mass_plot(beta,N,SU,order,N_order,N_measure,N_thermal,lower_c,upper_c,lower_e,upper_e,accel = False):
     observable_name = 'ww corr'
     if accel == False:
         file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
@@ -39,22 +39,41 @@ def mass_plot(beta,N,SU,order,N_order,N_measure,N_thermal,lower,upper,accel = Fa
     #plt.errorbar(ds, m_eff, yerr=m_eff_err, fmt='.', capsize=2)
     def model(x, m):
         return m
-    one = ds <= upper
-    two = ds >= lower
+    one = ds <= upper_c
+    two = ds >= lower_c
 
     mask = one & two
     popt, pcov = curve_fit(model, ds[mask], m_eff[mask], sigma=m_eff_err[mask], absolute_sigma=True)
-    print(popt, np.sqrt(pcov[0][0]))
     cor_len = 1/popt[0]
     cor_len_err = np.sqrt(pcov[0][0])/popt[0]**2
     ys = np.array([popt[0] for x in ds[mask]])
     r = m_eff[mask] - ys
+    axis = plt.subplot(111)
+    axis.spines[['right', 'top']].set_visible(False)
     reduced_chi2 = np.sum((r/m_eff_err[mask])**2) / (mask.size -1)
-    print(reduced_chi2)
-    plt.errorbar(ds, m_eff, yerr=m_eff_err, fmt='.', capsize=2,label='$\\xi = %.3f \pm %.3f$\n $\chi^2/DoF = %.3f$'%(cor_len, cor_len_err, reduced_chi2))
-    plt.legend()
-    plt.plot(ds[mask], ys, c='g', label='$m = %.3f \pm %.3f$'%(popt[0], np.sqrt(pcov[0][0])))
+    axis.errorbar(ds, m_eff, yerr=m_eff_err, fmt='.',color='black', capsize=2,label='Cosh')
+    axis.plot(ds[mask], ys, c='black',linestyle='dashed',linewidth=1.0,label='$\\xi^{cosh} = %.3f \pm %.3f$\n $\chi^2/DoF = %.3f$'%(cor_len, cor_len_err, reduced_chi2))
     #plt.plot(ds, model(ds, *popt), c='g', label='$m = %.3f \pm %.3f$'%(popt[0], np.sqrt(pcov[0][0])))
+
+    m_eff = - np.log(cor_1 / cor)
+    m_eff_err = np.roll(cor_err, -1)/cor_1 - cor_err/cor 
+    def model(x, m):
+        return m
+    one = ds <= upper_e
+    two = ds >= lower_e
+    mask = one & two
+    popt, pcov = curve_fit(model, ds[mask], m_eff[mask], sigma=m_eff_err[mask], absolute_sigma=True)
+    cor_len = 1/popt[0]
+    cor_len_err = np.sqrt(pcov[0][0])/popt[0]**2
+    ys = np.array([popt[0] for x in ds[mask]])
+    r = m_eff[mask] - ys
+    axis = plt.subplot(111)
+    axis.spines[['right', 'top']].set_visible(False)
+    reduced_chi2 = np.sum((r/m_eff_err[mask])**2) / (mask.size -1)
+    axis.errorbar(ds, m_eff, yerr=m_eff_err, fmt='.', capsize=2,label='Exp')
+
+    axis.plot(ds[mask], ys, c='red',linestyle='dashed',linewidth=1.0,label='$\\xi^{exp} = %.3f \pm %.3f$\n $\chi^2/DoF = %.3f$'%(cor_len, cor_len_err, reduced_chi2))
+    plt.legend()
     plt.ylim(popt[0]-0.2, popt[0]+0.2)
     plt.title( "beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal),fontsize = 5)
     plt.ylabel('m')
@@ -86,7 +105,7 @@ def correlation_length_automatic_fit(beta,N,SU,order,N_order,N_measure,N_thermal
     def model(d,xi):
         return (np.cosh((d-N_2)/xi)) / (np.cosh(N_2/xi) )
     cor_length,cor_length_err,reduced_chi2 = np.zeros(N_2),np.zeros(N_2),np.zeros(N_2)
-    for i,upper_fit in enumerate(range(lower,N_2)):
+    for i,upper_fit in enumerate(range(lower+1,N_2)):
     # perform the fit  
         one = ds <= upper_fit
         two = ds >=lower
@@ -109,17 +128,47 @@ def correlation_length_automatic_fit(beta,N,SU,order,N_order,N_measure,N_thermal
     cor_length_err = cor_length_err[i]
     
     fig = plt.figure(figsize=(8,6))
-    print(ds[mask])
-    plt.errorbar(ds, cor, yerr=cor_err, fmt='.', capsize=2)
-    cor_length,cor_err = cor_length,cor_err
+    axis = plt.subplot(111)
+    axis.spines[['right', 'top']].set_visible(False)
+    axis.errorbar(ds, cor, yerr=cor_err, fmt='.', capsize=2,color='black',label='Data')
     ds_fit = np.linspace(ds[mask][0], ds[mask][-1], 500)
-    plt.plot(ds_fit, model(ds_fit,*popt), c='g', label='$\\xi = %.3f \pm %.3f$\n $\chi^2/DoF = %.3f$'%(cor_length, cor_length_err, reduced_chi2))
+    axis.plot(ds_fit, model(ds_fit,*popt),linestyle='dashed',linewidth=0.75, c='black', label='$\\xi = %.3f \pm %.3f$\n $\chi^2/DoF = %.3f$'%(cor_length, cor_length_err, reduced_chi2))
+    
+    def model2(d,xi):
+        return (np.cosh((d-N_2)/xi)-1) / (np.cosh(N_2/xi)-1 )
+    cor_length,cor_length_err,reduced_chi2 = np.zeros(N_2),np.zeros(N_2),np.zeros(N_2)
+    for i,upper_fit in enumerate(range(lower+1,N_2)):
+    # perform the fit  
+        one = ds <= upper_fit
+        two = ds >=lower
+        mask = one*two# fitting range
+        popt, pcov = curve_fit(model2, ds[mask], cor[mask], sigma=cor_err[mask], absolute_sigma=True)
+        cor_length[i] = popt[0] # in units of lattice spacing
+        cor_length_err[i] = np.sqrt(pcov[0][0])
+
+        r = cor[mask] - model2(ds[mask], *popt)
+        reduced_chi2[i] = np.sum((r/cor_err[mask])**2) / (mask.size - 1) # dof = number of observations - number of fitted parameters
+    i = np.argmin(abs(reduced_chi2-[1 for i in range(N_2)]))
+    #print(range(1,N_2+1)[i])
+    one = ds <= range(1,N_2+1)[i]
+    two = ds >= lower
+    mask = one*two# fitting range
+    #print(mask)
+    #mask = ds <= upper_fit
+    reduced_chi2 = reduced_chi2[i]
+    cor_length = cor_length[i]
+    cor_length_err = cor_length_err[i]
+    ds_fit = np.linspace(ds[mask][0], ds[mask][-1], 500)
+    axis.plot(ds_fit, model2(ds_fit,*popt),linestyle='dashed',linewidth=0.75, c='red', label='$\\xi_{-1} = %.3f \pm %.3f$\n $\chi^2/DoF = %.3f$'%(cor_length, cor_length_err, reduced_chi2))
+    
+
     plt.yscale('log')
     plt.ylim(10**(-4),10**0)
     plt.xlabel(r'wall separation $d$ [$a$]')
     plt.title( "beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal),fontsize = 5)
     plt.ylabel('wall wall correlation $C_{ww}(d)$')
     plt.legend(prop={'size':12}, frameon=True, loc='upper right')
+    
     if accel == False:
 
         file_name = "ChiralResults/Processed/Plots/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+'.svg'
@@ -161,11 +210,32 @@ def correlation_length_manual_fit(beta,N,SU,order,N_order,N_measure,N_thermal,lo
     
     
     fig = plt.figure(figsize=(8,6))
-
-    plt.errorbar(ds, cor, yerr=cor_err, fmt='.', capsize=2)
+    axis = plt.subplot(111)
+    axis.spines[['right', 'top']].set_visible(False)
+    axis.errorbar(ds, cor, yerr=cor_err, fmt='.', capsize=2,color='black')
     cor_length,cor_err = cor_length,cor_err
     ds_fit = np.linspace(ds[mask][0], ds[mask][-1], 500)
-    plt.plot(ds_fit, model(ds_fit,*popt), c='g', label='$\\xi = %.3f \pm %.3f$\n $\chi^2/DoF = %.3f$'%(cor_length, cor_length_err, reduced_chi2))
+    axis.plot(ds_fit, model(ds_fit,*popt), c='black',linestyle='dashed',linewidth=0.75, label='$\\xi = %.3f \pm %.3f$\n $\chi^2/DoF = %.3f$'%(cor_length, cor_length_err, reduced_chi2))
+    
+    def model(d,xi):
+        return (np.cosh((d-N_2)/xi)-1) / (np.cosh(N_2/xi)-1)
+    upper_fit = upper
+    lower_fit = lower
+    one = ds <= upper_fit
+    two = ds >=lower_fit
+    mask = one*two# fitting range
+    popt, pcov = curve_fit(model, ds[mask], cor[mask], sigma=cor_err[mask], absolute_sigma=True, bounds=([0],[np.inf]))
+    cor_length= popt[0] # in units of lattice spacing
+    cor_length_err = np.sqrt(pcov[0][0])
+
+    r = cor[mask] - model(ds[mask], *popt)
+    reduced_chi2 = np.sum((r/cor_err[mask])**2) / (mask.size - 1) # dof = number of observations - number of fitted parameters
+    axis.errorbar(ds, cor, yerr=cor_err, fmt='.', capsize=2,color='black')
+    cor_length,cor_err = cor_length,cor_err
+    ds_fit = np.linspace(ds[mask][0], ds[mask][-1], 500)
+    axis.plot(ds_fit, model(ds_fit,*popt), c='red',linestyle='dashed',linewidth=0.75, label='$\\xi_{-1} = %.3f \pm %.3f$\n $\chi^2/DoF = %.3f$'%(cor_length, cor_length_err, reduced_chi2))
+    
+
     plt.yscale('log')
     plt.ylim(10**(-4),10**0)
     plt.xlabel(r'wall separation $d$ [$a$]')
@@ -246,21 +316,21 @@ def plot_e_desinty(betas, model_params,accel = False):
     if model_params["su_parameter"] == 2:
 
         axis.errorbar(x=betas, y=result, yerr=error,
-                      fmt="xk", label='Data With Exact Exponetnial')
+                      fmt="xk",color='black', label='Data With Exact Exponetnial')
 
         strong_2s = [strong_coupling_alt(beta) for beta in np.linspace(0, 1, 100)]
 
         strong = [strong_coupling(beta) for beta in np.linspace(0, 1, 100)]
 
-        plt.plot(np.linspace(0, 1, 100), strong_2s, 'b', label='Strong Coupling Alt')
+        plt.plot(np.linspace(0, 1, 100), strong_2s, 'blue',linestyle='dashdot',linewidth=0.75, label='Strong Coupling Alt')
 
-        plt.plot(np.linspace(0, 1, 100), strong, 'b', label='Strong Coupling')
+        plt.plot(np.linspace(0, 1, 100), strong, 'black',linestyle='--',linewidth=0.75, label='Strong Coupling')
 
         weak = [weak_coupling(beta) for beta in np.linspace(0.5, 4.0, 1000)]
 
-        plt.plot(np.linspace(0.5, 4.0, 1000), weak, 'r', label='Weak Coupling')
+        plt.plot(np.linspace(0.5, 4.0, 1000), weak, 'red',linestyle='dashed',linewidth=0.75, label='Weak Coupling')
 
-    axis.errorbar(x=betas, y=result_2, yerr=error_2, fmt="xg",
+    axis.errorbar(x=betas, y=result_2, yerr=error_2, fmt=".",color='black',
                   label='Data with Taylor of Order = ' + str(model_params["order"]) +
                   " and N_order = 10")
 
@@ -521,4 +591,56 @@ def plot_Greens_diags2(beta,N,SU,order,N_order,N_measure,N_thermal,accel = False
     #ax.errorbar(xdata,values,yerr=errors,fmt='.k')
     ax.plot(xdata,results)
     ax.spines[['right', 'top']].set_visible(False)
+    plt.show()
+def plot_iats(betas,N,SU,order,N_order,N_measure,N_thermal,corr_lens):
+    observable_name = 'Susceptibility iat'
+    l = len(corr_lens)
+    vals_no_acc = np.zeros(l)
+    vals_acc = np.zeros(l)
+    err_no_acc = np.zeros(l)
+    err_acc = np.zeros(l)
+    for i,beta in enumerate(betas):
+        file_name1 = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N[i])  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    
+        file_name2 = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N[i])  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+' Accel.npy'
+        vals_no_acc[i],err_no_acc[i] = np.load(file_name1)
+        vals_acc[i],err_acc[i] = np.load(file_name2)
+    plt.errorbar(corr_lens,vals_no_acc,yerr=err_no_acc,fmt='^',capsize=2,label='No Accel',color='black')
+    plt.errorbar(corr_lens,vals_acc,yerr=err_acc,fmt='.',capsize=2,label='Accel',color = 'black')
+    log_a = np.log(corr_lens)
+    log_iat = np.log(vals_acc)
+    err_log = err_acc/vals_acc
+    def linear(x, z, b):
+        return z*x + b
+    popt, pcov = curve_fit(linear, xdata=log_a,ydata=log_iat,sigma=err_log, absolute_sigma=True)
+    fitted_acc = [a**popt[0]*np.exp(popt[1]) for a in corr_lens]
+
+
+    plt.plot(corr_lens,fitted_acc,label = 'Fit for accelration: $z = $' + str(round(popt[0],3))+' $\pm $'+ str(round(np.sqrt(pcov[0][0]),3)),linestyle = 'dashed',color = 'blue',linewidth = 0.75)
+    log_a = np.log(corr_lens)
+    log_iat = np.log(vals_no_acc)
+    err_log = err_no_acc/vals_no_acc
+    def linear(x, z, b):
+        return z*x + b
+    popt, pcov = curve_fit(linear, xdata=log_a,ydata=log_iat,sigma=err_log, absolute_sigma=True)
+    fitted_acc = [a**popt[0]*np.exp(popt[1]) for a in corr_lens]
+    plt.plot(corr_lens,fitted_acc,label = 'Fit for no accelration: $z = $' + str(round(popt[0],3))+' $\pm $'+ str(round(np.sqrt(pcov[0][0]),3)),linestyle = 'dashed',color = 'black',linewidth = 0.75)
+
+    vals2 = np.array([8.563446099663128308e+00, 8.948369438472782988e+00 ,9.919038263108260978e+00, 9.608982546817623316e+00 ,1.156136494640124646e+01, 1.259567673318285941e+01, 1.406568553927657028e+01])
+    errs2 = np.array([3.259732171137674772e-01, 3.453898030471281855e-01, 4.032888832987974181e-01, 3.858292297862710440e-01, 5.090671684954585219e-01, 5.774897684578449431e-01, 6.814186249648421789e-01])
+    log_iat = np.log([8.563446099663128308e+00, 8.948369438472782988e+00 ,9.919038263108260978e+00, 9.608982546817623316e+00 ,1.156136494640124646e+01, 1.259567673318285941e+01, 1.406568553927657028e+01])
+    err_log = errs2/vals2
+    popt, pcov = curve_fit(linear, xdata=log_a,ydata=log_iat,sigma=err_log, absolute_sigma=True)
+    fitted_acc = [a**popt[0]*np.exp(popt[1]) for a in corr_lens]
+    plt.errorbar(corr_lens,vals2,yerr=errs2,fmt='x',capsize=2,label='Julian Data',color = 'black')
+    plt.plot(corr_lens,fitted_acc,label = 'Fit for Julian accelration: $z = $' + str(round(popt[0],3))+' $\pm $'+ str(round(np.sqrt(pcov[0][0]),3)),linestyle = 'dashed',color = 'red',linewidth = 0.75)
+
+
+
+    plt.legend()
+    plt.yscale('log')
+    plt.xscale('log')
+    plt.xlabel('$\\xi [a]$')
+    plt.ylabel('$\\tau_{iat}$')
+    plt.savefig('ChiralResults/Processed/Plots/Susceptibility iat.svg')
     plt.show()
