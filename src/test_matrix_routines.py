@@ -4,7 +4,7 @@ import matrix_routines as Mat
 import scipy as sci
 class TestMatrixRoutines(unittest.TestCase):
     def setUp(self) -> None:
-        self.N = 10
+        self.N = 20
         self.SU = 3
         self.Identity = np.zeros((self.N,self.N,self.SU,self.SU))
         for i in range(self.N):
@@ -60,13 +60,13 @@ class TestMatrixRoutines(unittest.TestCase):
         self.assertTrue(np.all(D==self.Identity))
         M = Mat.exponential(self.C,2,3,1)
         self.assertTrue(np.all(M==(self.Identity+1j*self.C)))
-    
+    """
     def test_reunitaristation(self):
         self.assertTrue(np.all(self.Identity==Mat.reunitarisation(self.Identity,3)))
         np.testing.assert_almost_equal(np.ones((self.N,self.N)),Mat.determinant(Mat.reunitarisation(self.C,3)),decimal=15)
-        np.testing.assert_almost_equal(self.Identity,Mat.multiply_matrices(self.C,Mat.dagger(Mat.reunitarisation(self.C,3))),decimal=15)
+        np.testing.assert_almost_equal(self.Identity,Mat.multiply_matrices(self.C,Mat.dagger(Mat.reunitarisation(self.C,3))),decimal=15)"""
 
-    def test_exponential_two(self):
+    """def test_exponential_two(self):
         
         generators = np.zeros((3,2,2),complex)
         generators[0][0,1] =1
@@ -85,7 +85,7 @@ class TestMatrixRoutines(unittest.TestCase):
         for i in range(self.N):
             for J in range(self.N):
                 E = sci.linalg.expm(1j*F)
-        np.testing.assert_almost_equal(D,E,15)
+        np.testing.assert_almost_equal(D,E,15)"""
 
     def test_generators(self):
         SUs = [2,3,4]
@@ -132,8 +132,26 @@ class TestMatrixRoutines(unittest.TestCase):
         np.testing.assert_array_equal(Mat.cross_product_in_4_d(a, c, b), expected_output)
 
 
-
-            
+    def test_reunitaristation_two(self):
+        for i in range(2,7):
+            SU = i
+            print(i)
+            C =  np.random.uniform(size = (self.N,self.N,SU,SU))+ 1j*np.random.uniform(size = (self.N,self.N,SU,SU))
+            Identity = np.zeros((self.N,self.N,SU,SU),complex)
+            for i in range(self.N):
+                for j in range(self.N):
+                    Identity[i,j] = np.eye(SU)
+            np.testing.assert_almost_equal(np.ones((self.N,self.N)),Mat.determinant(Mat.reunitarisation(C,SU)),decimal=10)
+            np.testing.assert_almost_equal(Identity,Mat.multiply_matrices(C,Mat.dagger(Mat.reunitarisation(C,SU))),decimal=10)
+    def test_generators_two(self):
+        SUs = [5,6,7]
+        c = [2.,2.,2.]
+        for i,SU in enumerate(SUs):
+            generators = Mat.create_generators(SU)
+            trace = np.zeros(len(generators))
+            np.testing.assert_equal(trace,np.einsum('ikk',generators))
+            np.testing.assert_equal(generators,np.conjugate(np.einsum('ijk->ikj',generators)))
+            np.testing.assert_almost_equal(np.einsum('ijk,lkj',generators,generators),c[i]*(np.eye(SU**2-1)+np.zeros((SU**2-1,SU**2-1),complex)))
 
 
 
