@@ -12,7 +12,7 @@ def process_Greens(beta,N,SU,order,N_order,N_measure,N_thermal,accel = False):
     errors = np.zeros((N,N))
     for i in range(N):
         for j in range(N):
-            values[i][j],errors[i][j],_ = Stats.Stats(data[i][j]).estimate()
+            values[i][j],errors[i][j],_,_ = Stats.Stats(data[i][j]).estimate()
     if accel == False:
         file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
     else:
@@ -31,7 +31,7 @@ def process_ww_corr(beta,N,SU,order,N_order,N_measure,N_thermal, accel = False):
     values_err = np.zeros(N+1)
     for i in range(N):
 
-        values[i],values_err[i],_= Stats.Stats(data[i]).estimate()
+        values[i],values_err[i],_,_= Stats.Stats(data[i]).estimate()
     values[N],values_err[N] = values[0],values_err[0]
     if accel == False:
         file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
@@ -51,7 +51,7 @@ def process_G_0_mom(beta,N,SU,order,N_order,N_measure,N_thermal,accel = False):
     values_err = np.zeros(N+1)
     for i in range(N):
 
-        values[i],values_err[i],_= Stats.Stats(data[i]).estimate()
+        values[i],values_err[i],_,_= Stats.Stats(data[i]).estimate()
     values[N],values_err[N] = values[0],values_err[0]
     if accel == False:
         file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
@@ -70,7 +70,7 @@ def process_G_diags(beta,N,SU,order,N_order,N_measure,N_thermal, accel = False):
     values_err = np.zeros(N+1)
     for i in range(N):
 
-        values[i],values_err[i],_= Stats.Stats(data[i]).estimate()
+        values[i],values_err[i],_,_= Stats.Stats(data[i]).estimate()
     values[N],values_err[N] = values[0],values_err[0]
     if accel == False:
         file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
@@ -91,7 +91,7 @@ def process_Greens_2(beta,N,SU,order,N_order,N_measure,N_thermal,accel = False):
         for j in range(N):
             for m in range(N):
                 for n in range(N):
-                    values[i][j][m][n],errors[i][j][m][n],_ = Stats.Stats(data[i][j][m][n]).estimate()
+                    values[i][j][m][n],errors[i][j][m][n],_,_ = Stats.Stats(data[i][j][m][n]).estimate()
         
     if accel == False:
         file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
@@ -99,7 +99,24 @@ def process_Greens_2(beta,N,SU,order,N_order,N_measure,N_thermal,accel = False):
         file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+" Accel.npy"
 
     np.save(file_name,(values,errors))
+def process_iats(beta,N,SU,order,N_order,N_measure,N_thermal,accel = False):
+    observable_name = 'Susceptibility'
+    if accel == False:
+        file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    else:
+        file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+" Accel.npy"
+    data = np.load(file_name)
 
+    value, error,iat, err_iat = Stats.Stats(data).estimate()
+    observable_name = 'Susceptibility iat'
+    if accel == False:
+        file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
+    else:
+        file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+" Accel.npy"
+    print(iat,err_iat)
+    np.save(file_name,(iat,err_iat))
+
+    
 
 
 def process_Action(beta,N,SU,order,N_order,N_measure,N_thermal,accel = False):
@@ -109,7 +126,7 @@ def process_Action(beta,N,SU,order,N_order,N_measure,N_thermal,accel = False):
     else:
         file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+" Accel.npy"
     data = np.load(file_name)
-    value, error,_ = Stats.Stats(data).estimate()
+    value, error,_,_ = Stats.Stats(data).estimate()
     if accel == False:
         file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
     else:
@@ -123,12 +140,12 @@ def process_Generic_observable(beta,N,SU,order,N_order,N_measure,N_thermal, obse
     else:
         file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+" Accel.npy"
     data = np.load(file_name)
-    value, error,_ = Stats.Stats(data).estimate()
+    value, error,_,_ = Stats.Stats(data).estimate()
     if accel == False:
         file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
     else:
         file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+" Accel.npy"
-
+    print(value,error)
     np.save(file_name,(value,error))
 
 def reprocess_Greens(beta,N,SU,order,N_order,N_measure,N_thermal, N_thermal_new,accel = False):
@@ -144,7 +161,7 @@ def reprocess_Greens(beta,N,SU,order,N_order,N_measure,N_thermal, N_thermal_new,
     errors = np.zeros((N,N))
     for i in range(N):
         for j in range(N):
-            values[i][j],errors[i][j],_ = Stats.Stats(np.array(data[i][j])[N_thermal_new:]).estimate()
+            values[i][j],errors[i][j],_,_ = Stats.Stats(np.array(data[i][j])[N_thermal_new:]).estimate()
     N_measure = N_measure - N_thermal_new
     if accel == False:
         file_name = "ChiralResults/Processed/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+'.npy'
@@ -164,7 +181,7 @@ def reprocess_ww(beta,N,SU,order,N_order,N_measure,N_thermal, N_thermal_new, acc
     values = np.zeros((N+1))
     errors = np.zeros((N+1))
     for i in range(N):
-        values[i],errors[i],_ = Stats.Stats(np.array(data[i])[N_thermal_new:]).estimate()
+        values[i],errors[i],_,_ = Stats.Stats(np.array(data[i])[N_thermal_new:]).estimate()
     values[N],errors[N] = values[0],errors[0]
     N_measure = N_measure - N_thermal_new
     if accel == False:
@@ -184,7 +201,7 @@ def sus_iat_process(betas,N,SU,order,N_order,N_measure,N_thermal, accel = False)
         else:
             file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+" Accel.npy"
         data = np.load(file_name)
-        val,err,iats[i] = Stats.Stats(data).estimate()
+        val,err,iats[i],_ = Stats.Stats(data).estimate()
     return iats, betas
 def sus_iat_process_N(beta,Ns,SU,order,N_order,N_measure,N_thermal,accel = False):
     observable_name = 'Susceptibility'
@@ -196,7 +213,7 @@ def sus_iat_process_N(beta,Ns,SU,order,N_order,N_measure,N_thermal,accel = False
         else:
             file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  +  " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  +  str(N_measure)+" N Thermal = "  + str(N_thermal)+" Accel.npy"
         data = np.load(file_name)
-        val,err,iats[i] = Stats.Stats(data).estimate()
+        val,err,iats[i],_ = Stats.Stats(data).estimate()
     return iats, Ns
 
 
