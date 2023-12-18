@@ -67,7 +67,7 @@ def lookup(d_rate,N_tau,results):
         if abs(x) == d_rate and y == N_tau:
             return x
         
-def measure(beta, N, SU, order, N_order, N_measure,N_thermal, observable, observable_name, Hot_start = True,accel =False):
+def measure(beta, N, SU, order, N_order, N_measure,N_thermal, observable, observable_name, Hot_start = True,accel =False, mass = 0.1):
     count = 0
     while True:
         try:
@@ -80,7 +80,7 @@ def measure(beta, N, SU, order, N_order, N_measure,N_thermal, observable, observ
             else:
                 file_name = "ChiralResults/"+observable_name+"/"+observable_name+" beta = " + str(beta) + " N = " + str(N)  + " SU = " + str(SU)+" Order = "  + str(order)+" N Order = "  + str(N_order)+" N measurements = "  + str(N_measure)+" N Thermal = "  + str(N_thermal)+" Accel.npy"
             N_tau, epsilon = load_calibration(beta,N,SU,order, N_order,accel=accel)
-            model = Chiral(N,beta,N_measure,N_thermal,1,epsilon,N_tau,SU,1,order=order, order_N=N_order, Hot_start=Hot_start,accel=accel)
+            model = Chiral(N,beta,N_measure,N_thermal,1,epsilon,N_tau,SU,1,order=order, order_N=N_order, Hot_start=Hot_start,accel=accel, mass = mass)
             results,rate = model.generate_measurements(observable)
         except (Exceptions.ChiralExceptions):
             count+= 1
