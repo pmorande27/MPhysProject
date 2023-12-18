@@ -6,7 +6,7 @@ from Stats import Stats
 
 class Chiral(object):
     
-    def __init__(self, N, beta, N_measurment, N_thermal, N_sweeps, epsilon, N_tau, SU = 3, a = 1, order = 10, order_N = 10, renorm_freq = 1000, Hot_start = True, accel = False) -> None:
+    def __init__(self, N, beta, N_measurment, N_thermal, N_sweeps, epsilon, N_tau, SU = 3, a = 1, order = 10, order_N = 10, renorm_freq = 1000, Hot_start = True, accel = False, mass=0.1) -> None:
         
         self.SU = SU
         
@@ -22,9 +22,9 @@ class Chiral(object):
         self.N_tau = N_tau
         
         self.N_sweeps = N_sweeps
-        self.mass = 0.1
+        self.mass = mass
         
-        if SU == 3 or SU == 2 or SU==4:
+        if SU == 3 or SU == 2 or SU==4 or SU == 5 or SU == 6: 
         
             self.c = 2
         
@@ -330,9 +330,9 @@ class Chiral(object):
                 results[i] = observable(self.U)
                
                 bar()
-                if i == 999 and self.accepted/self.tries <= 0.75:
+                if i == 999 and self.accepted/self.tries <= 0.65:
                     raise Exceptions.CalibrationException('The Acceptance rate of the run is too low to be acceptable, consider recalibrating or running again')
-                if (i%self.renorm_freq==0 and (self.SU == 3 or self.SU==4)):
+                if (i%self.renorm_freq==0 and (self.SU == 2 or self.SU == 3 or self.SU==4 or self.SU==5 or self.SU==6)):
                     self.U = Mat.reunitarisation(self.U.copy(), self.SU)
                     #print(np.average(Mat.determinant(self.U)))
             rate = self.accepted/self.tries
@@ -384,7 +384,16 @@ class Chiral(object):
     @staticmethod
     def Measure_Sus(U,SU):
         N = len(U)
-        return 1/(SU*N**2) *(np.einsum('ijkl,mnlk->',U,Mat.dagger(U))).real
+        dagU = Mat.dagger(U)
+        us = np.sum(U,axis = 1)
+        us2 = np.sum(dagU,axis = 1)
+        ww_cor = np.zeros(N)
+        for l in range(SU):
+            for k in range(SU):
+                cf = Stats.correlator(us[:,l,k], np.conjugate(us2[:,k,l]))
+                ww_cor += cf.real
+        ww_cor = ww_cor/(SU*N**2)
+        return np.sum(ww_cor)
     @staticmethod
     def Measure_G(U,SU):
         Udag = Mat.dagger(U)
