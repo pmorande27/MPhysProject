@@ -3,6 +3,8 @@ Module used to perform all matrix operations
 on the lattice
 """
 import numpy as np
+import itertools
+
 
 def dagger(lattice):
     """
@@ -57,8 +59,27 @@ def exponential(lattice, order, su_parameter, order_n):
     return np.linalg.matrix_power(result[:, :], order_n)
 
 #   return power(result,N,identity)
-
 def create_generators(su_parameter):
+    """
+    Method used to create the generators of SU(N)
+    """
+    generators = np.zeros((su_parameter**2-1, su_parameter, su_parameter), dtype=complex)
+    generators1 = []
+    generators2 = []
+    generators3 = []
+    for k in range(su_parameter):
+        for j in range(k):
+            generators1 += [E(j,k,su_parameter) +E(k,j,su_parameter)]
+            generators2 += [-1j*(E(j,k,su_parameter) -E(k,j,su_parameter))]
+    for l in range(1,su_parameter):
+        generators3 += [np.sqrt(2/(l*(l+1)))*np.sum([E(i,i,su_parameter) for i in range(l)],axis=0) - np.sqrt(2/(l*(l+1)))*l*E(l,l,su_parameter)]
+    generators= np.concatenate((generators1,generators2,generators3),axis=0)
+    return generators
+def E(j,k,su_parameter):
+    E = np.zeros((su_parameter,su_parameter),dtype=complex)
+    E[j,k] = 1
+    return E
+def create_generators2(su_parameter):
     """
     Method used to create the generators of SU(N)
     """
@@ -240,51 +261,47 @@ def reunitarisation(lattice, su_parameter):
     Method used to reunitarise all the matrices in the
     lattice for SU(3)
     """
-    if su_parameter == 3:
+    n_length = len(lattice)
+    def n_cross(dim,*args):
+            alphabet = 'ijklmnopqrstuvwxyz'
+            str1 = '...'+alphabet[0:dim]
+            for i in range(dim-1):
+                str1 = str1+',...'+alphabet[i+1]
 
-        n_length = len(lattice)
+            return (-1)**(dim-1)*np.einsum(str1,levi_cevita_tensor(dim),*args)
+    if su_parameter == 2:
+        norms = np.linalg.norm(lattice[:, :, 0], axis=2)
+        lattice[:, :, 0] = lattice[:, :, 0] / norms[..., np.newaxis]
 
-        for i in range(n_length):
+        lattice[:, :, 1] = np.conjugate(n_cross(2, lattice[:, :, 0]))
+    else:
+        norms = np.linalg.norm(lattice[:, :, 0], axis=2)
 
-            for j in range(n_length):
+        lattice[:, :, 0] = lattice[:, :, 0]/norms[..., np.newaxis]
 
-                lattice[i, j, 0] = lattice[i, j, 0]/np.linalg.norm(lattice[i, j, 0])
+        for m in range(1, su_parameter-1):
+            for n in range(0, m):
+                one = np.einsum('ijk,ijk->ij', np.conjugate(lattice[:, :, n]), lattice[:, :, m],optimize=False)
+                lattice[:, :, m] = lattice[:, :, m] - \
+                np.einsum('ijk,ij->ijk', lattice[:, :, n], one,optimize=False)
+            norms = np.linalg.norm(lattice[:, :, m], axis=2)
 
-                lattice[i, j, 1] = lattice[i, j, 1] - \
-                        np.dot(np.conjugate(lattice[i, j, 0]), lattice[i, j, 1])\
-                        * lattice[i, j, 0]
+            lattice[:, :, m] = lattice[:, :, m]/norms[..., np.newaxis]
 
-                lattice[i, j, 1] = lattice[i, j, 1]/np.linalg.norm(lattice[i, j, 1])
-
-                lattice[i, j, 2] = np.conjugate(np.cross((lattice[i, j, 0]), lattice[i, j, 1]))
-    if su_parameter == 4:
-        n_length = len(lattice)
-
-        for i in range(n_length):
-
-            for j in range(n_length):
-
-                lattice[i, j, 0] = lattice[i, j, 0]/np.linalg.norm(lattice[i, j, 0])
-
-                lattice[i, j, 1] = lattice[i, j, 1] - \
-                        np.dot(np.conjugate(lattice[i, j, 0]), lattice[i, j, 1])\
-                        * lattice[i, j, 0]
-
-                lattice[i, j, 1] = lattice[i, j, 1]/np.linalg.norm(lattice[i, j, 1])
-
-                lattice[i, j, 2] = lattice[i, j, 2] - \
-                        np.dot(np.conjugate(lattice[i, j, 0]), lattice[i, j, 2])\
-                        * lattice[i, j, 0] -\
-                        np.dot(np.conjugate(lattice[i, j, 1]), lattice[i, j, 2])\
-                        * lattice[i, j, 1]
-
-                lattice[i, j, 2] = lattice[i, j, 2]/np.linalg.norm(lattice[i, j, 2])
-
-                lattice[i, j, 3] = np.conjugate(cross_product_in_4_d((lattice[i, j, 0]), lattice[i, j, 1], lattice[i,j,2]))
-
-
+        lists = tuple([lattice[:, :, k] for k in range(su_parameter-1)])
+        lattice[:, :, su_parameter-1] = np.conjugate(n_cross(su_parameter, *lists))
+                  
     return lattice
+def levi_cevita_tensor(dim):   
+    arr=np.zeros(tuple([dim for _ in range(dim)]))
+    for x in itertools.permutations(tuple(range(dim))):
+        mat = np.zeros((dim, dim), dtype=np.int32)
+        for i, j in zip(range(dim), x):
+            mat[i, j] = 1
+        arr[x]=int(np.linalg.det(mat))
+    return arr
 
+    
 def cross_product_in_4_d(a, b, c):
     U = np.zeros((4,4),np.clongdouble)
     U[0,1] = a[3]*b[2] -a[2]*b[3]
