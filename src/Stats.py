@@ -193,3 +193,253 @@ class Stats(object):
         g = np.fft.fft(y)
         cf = np.fft.ifft(f * np.conjugate(g))
         return cf
+    
+    def jacknife(self):
+        self.measurements = np.array(self.measurements)
+        N = len(self.measurements)
+        val = np.mean(self.measurements)
+        jack_vals = np.zeros(N)
+        total_sum = np.sum(self.measurements)
+
+        jack_vals[:] = (total_sum - self.measurements[:]) / (N - 1)
+
+        sigma_sq = np.sum((jack_vals - val) ** 2) * (N - 1) / N
+
+        return val, np.sqrt(sigma_sq)
+    
+        
+    def jacknife_function(self,function):
+        self.measurements = np.array(self.measurements)
+        N = len(self.measurements)
+        val = np.mean(self.measurements)
+        jack_vals = np.zeros(len(self.measurements))
+        jack_vals_func = np.zeros(len(self.measurements))
+        for i in range(len(self.measurements)):
+            jack_vals[i] = np.mean(np.delete(self.measurements,i))
+            jack_vals_func[i] = function(jack_vals[i])
+        f_val = np.mean(jack_vals_func)
+        sigma_sq = 0
+        for i in range(self.measurements):
+            sigma_sq += (jack_vals_func[i]-f_val)**2
+        sigma_sq = ((len(self.measurements)-1))*sigma_sq/N
+
+        return val, np.sqrt(sigma_sq)
+    def jacknife_2D(self,function):
+        self.measurements = np.array(self.measurements)
+        N = len(self.measurements)
+        val = np.mean(self.measurements)
+        jack_vals = np.zeros(N)
+        total_sum = np.sum(self.measurements)
+
+        jack_vals[:] = (total_sum - self.measurements[:]) / (N - 1)
+
+        sigma_sq = np.sum((jack_vals - val) ** 2) * (N - 1) / N
+
+        return val, np.sqrt(sigma_sq)
+
+    def jacknife_function_2D(self,L,function):
+        self.measurements = np.array(self.measurements)
+        N = len(self.measurements[0])
+        print('---------')
+        print(N)
+        val = np.mean(self.measurements,axis=1)
+        jack_vals = np.zeros((N,L))
+        jack_vals_func = np.zeros((N,L))
+        total_sum = np.sum(self.measurements, axis=1)
+
+        for l in range(L):
+            jack_vals[:,l] = (total_sum[l] - self.measurements[l,:]) / (N - 1)
+        jack_vals_func[:] = function(jack_vals[:])
+
+        f_val = np.mean(jack_vals_func,axis=0)
+        sigma_sq = ((N-1)/N) * np.sum((jack_vals_func - f_val)**2, axis=0)
+
+        return f_val, np.sqrt(sigma_sq)
+    
+    def jacknife_function_2D_2(self,L,function):
+        self.measurements = np.array(self.measurements)
+        N = len(self.measurements[0])
+        print(N)
+        val = np.zeros(L)
+        L_2 = int(L/2)+1
+        val = np.mean(self.measurements,axis=1)
+        jack_vals = np.zeros((len(self.measurements),L))
+        jack_vals_func = np.zeros((len(self.measurements),L_2))
+        total_sum = np.sum(self.measurements, axis=1)
+        for i in range(len(self.measurements)):
+            for l in range(L):
+                jack_vals[i,l] = (total_sum[l] - self.measurements[l,i]) / (N - 1)
+            
+            jack_vals_func[i] = function(jack_vals[i])
+        f_val = np.mean(jack_vals_func,axis=0)
+        sigma_sq = np.zeros(L_2)
+        for i in range(len(self.measurements)):
+            sigma_sq += (jack_vals_func[i]-f_val)**2
+        sigma_sq = ((len(self.measurements)-1))*sigma_sq/N
+
+        return f_val, np.sqrt(sigma_sq)
+
+    def Jacknife_two(self,n,L,function):
+        N = len(self.measurements[0])
+        Nb = int(N/n)
+        mes = self.measurements.swapaxes(0,1)
+        print(self.measurements.shape)
+        print(Nb)
+        L_2 = int(L/2)+1
+        measurements = self.measurements.reshape((n,Nb,L))
+        vals = np.mean(measurements,axis=2)
+        jack_vals_func = np.zeros((n,L_2))
+        for i in range(n):
+                series = np.delete(measurements,i,axis=0).reshape((n-1)*Nb,L)
+                val = np.mean(series,axis=0)
+                jack_vals_func[i] = function(val)
+        f_val = np.mean(jack_vals_func,axis=0)
+        sigma_sq = np.zeros(L_2)
+        for i in range(n):
+            sigma_sq += (jack_vals_func[i]-f_val)**2
+        sigma_sq = ((n-1))*sigma_sq/n 
+        return f_val, np.sqrt(sigma_sq)
+            
+        
+
+    def jacknife_arbitrary(self,block_size):
+        self.measurements = np.array(self.measurements)
+        N = len(self.measurements)
+        M = int(N/block_size)
+        val = np.mean(self.measurements)
+        jack_vals = np.zeros(int(N/block_size))
+        total_sum = np.sum(self.measurements)
+        for i in range(0, N, block_size):
+            jack_vals[i // block_size] = (total_sum - np.sum(self.measurements[i:i+block_size])) / (N - block_size)
+
+        sigma_sq = ((M - 1) / M) * np.sum((jack_vals - val) ** 2)
+
+
+        return val, np.sqrt(sigma_sq)
+    
+    def jacknife_arbitrary_function_2D(self,L,block_size,function):
+        self.measurements = np.array(self.measurements)
+        N = len(self.measurements[0])
+        M = int(N/block_size)
+        val = np.mean(self.measurements,axis=1)
+        jack_vals = np.zeros((int(N/block_size),len(self.measurements)))
+        jack_vals_func = np.zeros((int(N/block_size),L))
+        total_sum = np.sum(self.measurements, axis=1)
+        for i in range(0, N, block_size):
+            for l in range(len(self.measurements)):
+                jack_vals[i // block_size,l] = (total_sum[l] - np.sum(self.measurements[l,i:i+block_size])) / (N - block_size)
+            jack_vals_func[i//block_size] = function(jack_vals[i//block_size])
+        f_val = np.mean(jack_vals_func,axis=0)
+        sigma_sq = ((M-1)/M) * np.sum((jack_vals_func - f_val)**2, axis=0)
+
+        return f_val, np.sqrt(sigma_sq)
+    def jacknife_arbitrary_function_2D_2(self,L,block_size,function):
+        self.measurements = np.array(self.measurements)
+        
+        N = len(self.measurements[0])
+        M = int(N/block_size)
+        val = np.mean(self.measurements,axis=1)
+        jack_vals = np.zeros((int(N/block_size),len(self.measurements)))
+        jack_vals_func = np.zeros((int(N/block_size),L))
+        total_sum = np.sum(self.measurements, axis=1)
+
+        for i in range(0, N, block_size):
+            for l in range(len(self.measurements)):
+                jack_vals[i // block_size,l] = (total_sum[l] - np.sum(self.measurements[l,i:i+block_size])) / (N - block_size)
+            jack_vals_func[i//block_size] = function(jack_vals[i//block_size])
+        f_val_total = function(val)
+        f_val = np.mean(jack_vals_func,axis=0)
+        f_final = M*f_val_total - (M-1)*f_val
+        sigma_sq = ((M-1)/M) * np.sum((jack_vals_func - f_val)**2, axis=0)
+
+        return f_final, np.sqrt(sigma_sq)
+    def jacknife_arbitrary_function_2D_2_2(self,L,block_size,function):
+        self.measurements = np.array(self.measurements)
+        
+        N = len(self.measurements[0])
+        M = int(N/block_size)
+        L_2 = int(L/2)+1
+        val = np.mean(self.measurements,axis=1)
+        jack_vals = np.zeros((int(N/block_size),len(self.measurements)))
+        jack_vals_func = np.zeros((int(N/block_size),L_2))
+        total_sum = np.sum(self.measurements, axis=1)
+
+        for i in range(0, N, block_size):
+            for l in range(len(self.measurements)):
+                jack_vals[i // block_size,l] = (total_sum[l] - np.sum(self.measurements[l,i:i+block_size])) / (N - block_size)
+            jack_vals_func[i//block_size] = function(jack_vals[i//block_size])
+        f_val_total = function(val)
+        f_val = np.mean(jack_vals_func,axis=0)
+        f_final = M*f_val_total - (M-1)*f_val
+        sigma_sq = ((M-1)/M) * np.sum((jack_vals_func - f_val)**2, axis=0)
+        
+        """ x = np.mean(self.measurements,axis = 1)
+        N_2 = int(N/2)+1
+        S = np.zeros((L,L))
+        for tau in range(L):
+            for taup in range(L):
+                S[tau,taup] = 1/(N-1) * np.sum((self.measurement[tau]-x[tau])*(self.measurement[taup]-x[taup]))
+        rho  = np.zeros((L,L))
+        for tau in range(L):
+            for taup in range(L):
+                rho[tau,taup] = S[tau,taup]/np.sqrt(S[tau,tau]*S[taup,taup])
+        y = np.zeros(L,)
+        for tau in range(L):
+            y[tau] = (self.measurements[tau]-x)"""
+
+
+        
+        return f_final, np.sqrt(sigma_sq)
+    
+    def jacknife_arbitrary_function_second_moment_correlation_length(self,L,block_size):
+        self.measurements = np.array(self.measurements)
+        
+        N = len(self.measurements[0][0])
+
+        M = int(N/block_size)
+        val = np.mean(self.measurements,axis=2)
+        jack_vals = np.zeros((int(N/block_size),len(self.measurements),len(self.measurements)))
+        jack_vals_func = np.zeros((int(N/block_size)))
+        total_sum = np.sum(self.measurements, axis=2)
+        print(total_sum.shape)
+        def corr_len(x):
+            Gf = np.fft.fft2(x)
+            p = 2*np.pi/N
+            sq = (1/(4*np.sin(np.pi/L)*np.sin(np.pi/L))*(Gf[0,0]/Gf[0,1]-1)).real
+            return sq**0.5
+        for i in range(0, N, block_size):
+            for l in range(len(self.measurements)):
+                for k in range(len(self.measurements)):
+                    jack_vals[i // block_size,l,k] = (total_sum[l,k] - np.sum(self.measurements[l,k,i:i+block_size])) / (N - block_size)
+            jack_vals_func[i//block_size] = corr_len(jack_vals[i//block_size])
+        f_val_total = corr_len(val)
+        f_val = np.mean(jack_vals_func,axis=0)
+        f_final = M*f_val_total - (M-1)*f_val
+        sigma_sq = ((M-1)/M) * np.sum((jack_vals_func - f_val)**2, axis=0)
+
+        return f_final, np.sqrt(sigma_sq)
+    
+    def jacknife_C_V(self,block_size):
+        self.measurements = np.array(self.measurements)
+        
+        N = len(self.measurements)
+        print(self.measurements.shape)
+        M = int(N/block_size)
+        val = np.mean(self.measurements,axis=0)
+        jack_vals = np.zeros((int(N/block_size),2))
+
+        jack_vals_func = np.zeros((int(N/block_size)))
+        total_sum = np.sum(self.measurements, axis=0)
+        def function(x):
+
+            return (x[0]-x[1]**2)
+        for i in range(0, N, block_size):
+            for l in range(2):
+                jack_vals[i // block_size,l] = (total_sum[l] - np.sum(self.measurements[i:i+block_size,l])) / (N - block_size)
+            jack_vals_func[i//block_size] = function(jack_vals[i//block_size])
+        f_val_total = function(val)
+        f_val = np.mean(jack_vals_func,axis=0)
+        f_final = M*f_val_total - (M-1)*f_val
+        sigma_sq = ((M-1)/M) * np.sum((jack_vals_func - f_val)**2, axis=0)
+        return f_final, np.sqrt(sigma_sq)
+    

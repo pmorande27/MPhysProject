@@ -88,10 +88,12 @@ class TestMatrixRoutines(unittest.TestCase):
         np.testing.assert_almost_equal(D,E,15)"""
 
     def test_generators(self):
-        SUs = [2,3,4]
-        c = [2.,2.,2.]
+        SUs = [2,3,4,6]
+        c = [2.,2.,2.,2.]
         for i,SU in enumerate(SUs):
             generators = Mat.create_generators(SU)
+            if SU == 6:
+                print(np.einsum('ijk,lkj',generators,generators))
             trace = np.zeros(len(generators))
             np.testing.assert_equal(trace,np.einsum('ikk',generators))
             np.testing.assert_equal(generators,np.conjugate(np.einsum('ijk->ikj',generators)))
@@ -135,7 +137,6 @@ class TestMatrixRoutines(unittest.TestCase):
     def test_reunitaristation_two(self):
         for i in range(2,7):
             SU = i
-            print(i)
             C =  np.random.uniform(size = (self.N,self.N,SU,SU))+ 1j*np.random.uniform(size = (self.N,self.N,SU,SU))
             Identity = np.zeros((self.N,self.N,SU,SU),complex)
             for i in range(self.N):

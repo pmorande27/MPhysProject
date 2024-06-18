@@ -3,7 +3,7 @@ from alive_progress import alive_bar
 import matrix_routines as Mat
 import Exceptions
 from Stats import Stats
-
+import time
 class Chiral(object):
     
     def __init__(self, N, beta, N_measurment, N_thermal, N_sweeps, epsilon, N_tau, SU = 3, a = 1, order = 10, order_N = 10, renorm_freq = 1000, Hot_start = True, accel = False, mass=0.1) -> None:
@@ -24,7 +24,7 @@ class Chiral(object):
         self.N_sweeps = N_sweeps
         self.mass = mass
         
-        if SU == 3 or SU == 2 or SU==4 or SU == 5 or SU == 6: 
+        if SU == 3 or SU == 2 or SU==4 or SU == 5 or SU == 6 or SU == 9: 
         
             self.c = 2
         
@@ -302,7 +302,41 @@ class Chiral(object):
                 bar()
                 
 
-    
+    def generate_measurements_two_obs(self, observable1, observable2):
+        """
+        Runs the HMC N_measurment times and records the observable value in each measurement.
+        """
+        if np.all(self.U == self.identity):
+            raise Exceptions.ThermalizationException("The Field is still equal to the Identity when initialisating the Measurements, thermalisation has not occurred, possible fixes include running the program again, calibrating or increasing the number of thermalisation runs")
+        results = np.zeros((self.N_measurement,2))
+        
+        
+        print('Measurements with beta = ' + str(self.beta) + " N = " +str(self.N))
+        
+        with alive_bar(self.N_measurement) as bar:
+            for i in range(self.N_measurement):
+                for j in range(self.N_sweeps):
+                    if self.accel:
+                        self.HMC_FA()
+                    else:
+                        self.HMC()
+                self.DH[i]  = self.delta_H 
+                results[i][0] = observable1(self.U)
+                results[i][1] = observable2(self.U)
+                bar()
+                if i == 999 and self.accepted/self.tries <= 0.65:
+                    raise Exceptions.CalibrationException('The Acceptance rate of the run is too low to be acceptable, consider recalibrating or running again')
+                if (i%self.renorm_freq==0 and (self.SU == 2 or self.SU == 3 or self.SU==4 or self.SU==5 or self.SU==6)):
+                    self.U = Mat.reunitarisation(self.U.copy(), self.SU)
+                    #print(np.average(Mat.determinant(self.U)))
+            rate = self.accepted/self.tries
+            
+            print(rate)
+            print(np.average(np.exp(-self.DH)))
+  
+        print('------------------------------')
+        
+        return results, rate
     def generate_measurements(self, observable):
         """
         Runs the HMC N_measurment times and records the observable value in each measurement.
@@ -349,8 +383,8 @@ class Chiral(object):
         """
         Runs the HMC for Calibration of the parameters of the algorithms
         """
-        DH = np.zeros(N_runs)
-    
+        self.DHc = np.zeros(N_runs)
+        
         with alive_bar(N_runs + N_thermal) as bar:
             
             for i in range(N_thermal):
@@ -374,10 +408,9 @@ class Chiral(object):
                 else:
                     self.HMC()
                 
-                DH[i] = self.delta_H
+                self.DHc[i] = self.delta_H
                 
                 bar()
-                
             
             print((self.accepted/self.tries)*100)
                     
@@ -457,5 +490,24 @@ class Chiral(object):
             for t0 in range(N):
                 result[t] += np.einsum('jkl,mlk->',U[t0],dagU[(t+t0)%N]).real
         result = result/N**2"""
+        return ww_cor
+
+    @staticmethod
+    def Measure_ww_corr_state_two(U,SU):
+        N = len(U)
+        O = np.einsum('ijab,ijcd->ijabcd',U,U)-np.einsum('ijad,ijcb->ijabcd',U,U)
+        dagU = Mat.dagger(U)
+        os = np.sum(O,axis = 1)
+        us = np.sum(U,axis = 1)
+        us2 = np.sum(dagU,axis = 1)
+        ww_cor = np.zeros(N)
+        for k in range(SU):
+            for l in range(SU):
+                for m in range(SU):
+                    for n in range(SU):
+                        cf = Stats.correlator(os[:,k,l,m,n], os[:,k,l,m,n])
+                        ww_cor += cf.real
+               
+        ww_cor = ww_cor/N**2
         return ww_cor
 
